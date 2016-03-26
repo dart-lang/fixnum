@@ -1,6 +1,4 @@
-*.sw?
-.idea
+.packages
 .pub
-build
 packages
 pubspec.lock
