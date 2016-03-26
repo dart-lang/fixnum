@@ -13,7 +13,7 @@ dartanalyzer lib/fixnum.dart test/all_tests.dart
 
 # Run the tests.
 echo "Running tests..."
-dart -c test/all_tests.dart
+pub run test
 
 # Gather and send coverage data.
 if [ "$REPO_TOKEN" ]; then

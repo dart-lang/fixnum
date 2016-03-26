@@ -1,7 +1,9 @@
-import 'int32_test.dart' as int32_test;
-import 'int64_test.dart' as int64_test;
+import 'package:test/test.dart';
 
-main() {
-  int32_test.main();
-  int64_test.main();
+import 'int32_test.dart' as int32;
+import 'int64_test.dart' as int64;
+
+void main() {
+  group('int32', int32.main);
+  group('int64', int64.main);
 }
