@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of fixnum;
+import 'int32.dart';
+import 'intx.dart';
+import 'util.dart' hide numberOfLeadingZeros, numberOfTrailingZeros;
+import 'util.dart' as u;
 
 /**
  * An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
@@ -69,7 +72,7 @@ class Int64 implements IntX {
    * [Int64].
    */
   static Int64 parseRadix(String s, int radix) {
-    return _parseRadix(s, Int32._validateRadix(radix));
+    return _parseRadix(s, validateRadix(radix));
   }
 
   static Int64 _parseRadix(String s, int radix) {
@@ -82,7 +85,7 @@ class Int64 implements IntX {
     int d0 = 0, d1 = 0, d2 = 0; //  low, middle, high components.
     for (; i < s.length; i++) {
       int c = s.codeUnitAt(i);
-      int digit = Int32._decodeDigit(c);
+      int digit = decodeDigit(c);
       if (digit < 0 || digit >= radix) {
         throw new FormatException("Non-radix char code: $c");
       }
@@ -537,11 +540,11 @@ class Int64 implements IntX {
    * between 0 and 64.
    */
   int numberOfLeadingZeros() {
-    int b2 = Int32._numberOfLeadingZeros(_h);
+    int b2 = u.numberOfLeadingZeros(_h);
     if (b2 == 32) {
-      int b1 = Int32._numberOfLeadingZeros(_m);
+      int b1 = u.numberOfLeadingZeros(_m);
       if (b1 == 32) {
-        return Int32._numberOfLeadingZeros(_l) + 32;
+        return u.numberOfLeadingZeros(_l) + 32;
       } else {
         return b1 + _BITS2 - (32 - _BITS);
       }
@@ -555,17 +558,17 @@ class Int64 implements IntX {
    * between 0 and 64.
    */
   int numberOfTrailingZeros() {
-    int zeros = Int32._numberOfTrailingZeros(_l);
+    int zeros = u.numberOfTrailingZeros(_l);
     if (zeros < 32) {
       return zeros;
     }
 
-    zeros = Int32._numberOfTrailingZeros(_m);
+    zeros = u.numberOfTrailingZeros(_m);
     if (zeros < 32) {
       return _BITS + zeros;
     }
 
-    zeros = Int32._numberOfTrailingZeros(_h);
+    zeros = u.numberOfTrailingZeros(_h);
     if (zeros < 32) {
       return _BITS01 + zeros;
     }
@@ -666,7 +669,7 @@ class Int64 implements IntX {
   }
 
   String toRadixString(int radix) {
-    return _toRadixString(Int32._validateRadix(radix));
+    return _toRadixString(validateRadix(radix));
   }
 
   String _toRadixString(int radix) {
