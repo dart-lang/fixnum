@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library int64test;
-
 import 'package:fixnum/fixnum.dart';
 import 'package:test/test.dart';
 
 void main() {
   group("fromBytes", () {
     test("fromBytes", () {
-      checkBytes(List<int> bytes, int h, int l) {
+      void checkBytes(List<int> bytes, int h, int l) {
         expect(new Int64.fromBytes(bytes), new Int64.fromInts(h, l));
       }
       checkBytes([0, 0, 0, 0, 0, 0, 0, 0], 0, 0);
@@ -22,7 +20,7 @@ void main() {
           0xffffffff);
     });
     test("fromBytesBigEndian", () {
-      checkBytes(List<int> bytes, int h, int l) {
+      void checkBytes(List<int> bytes, int h, int l) {
         expect(new Int64.fromBytesBigEndian(bytes), new Int64.fromInts(h, l));
       }
       checkBytes([0, 0, 0, 0, 0, 0, 0, 0], 0, 0);
@@ -35,8 +33,8 @@ void main() {
     });
   });
 
-  argumentErrorTest(name, op, [receiver = Int64.ONE]) {
-    throwsArgumentErrorMentioning(substring) =>
+  void argumentErrorTest(name, op, [receiver = Int64.ONE]) {
+    Matcher throwsArgumentErrorMentioning(substring) =>
         throwsA((e) => e is ArgumentError && '$e'.contains(substring));
 
     expect(() => op(receiver, null), throwsArgumentErrorMentioning('null'));
@@ -297,7 +295,7 @@ void main() {
 
   group("leading/trailing zeros", () {
     test("numberOfLeadingZeros", () {
-      checkZeros(Int64 value, int zeros) {
+      void checkZeros(Int64 value, int zeros) {
         expect(value.numberOfLeadingZeros(), zeros);
       }
       checkZeros(new Int64(0), 64);
@@ -311,7 +309,7 @@ void main() {
     });
 
     test("numberOfTrailingZeros", () {
-      checkZeros(Int64 value, int zeros) {
+      void checkZeros(Int64 value, int zeros) {
         expect(value.numberOfTrailingZeros(), zeros);
       }
       checkZeros(new Int64(-1), 0);
@@ -742,7 +740,7 @@ void main() {
 
   group("parse", () {
     test("parseRadix10", () {
-      checkInt(int x) {
+      void checkInt(int x) {
         expect(Int64.parseRadix('$x', 10), new Int64(x));
       }
       checkInt(0);
@@ -765,7 +763,7 @@ void main() {
     });
 
     test("parseHex", () {
-      checkHex(String hexStr, int h, int l) {
+      void checkHex(String hexStr, int h, int l) {
         expect(Int64.parseHex(hexStr), new Int64.fromInts(h, l));
       }
       checkHex('0', 0, 0);
@@ -784,7 +782,7 @@ void main() {
     });
 
     test("parseRadix", () {
-      check(String s, int r, String x) {
+      void check(String s, int r, String x) {
         expect(Int64.parseRadix(s, r).toString(), x);
       }
       check('ghoul', 36, '27699213');
@@ -802,7 +800,7 @@ void main() {
     });
 
     test("parseRadixN", () {
-      check(String s, int r) {
+      void check(String s, int r) {
         expect(Int64.parseRadix(s, r).toRadixString(r), s);
       }
       check("2ppp111222333", 33); // This value & radix requires three chunks.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library Int32test;
-
 import 'package:fixnum/fixnum.dart';
 import 'package:test/test.dart';
 
@@ -354,7 +352,7 @@ void main() {
 
   group("parse", () {
     test("base 10", () {
-      checkInt(int x) {
+      void checkInt(int x) {
         expect(Int32.parseRadix('$x', 10), new Int32(x));
       }
       checkInt(0);
@@ -371,7 +369,7 @@ void main() {
     });
 
     test("parseRadix", () {
-      check(String s, int r, String x) {
+      void check(String s, int r, String x) {
         expect(Int32.parseRadix(s, r).toString(), x);
       }
       check('deadbeef', 16, '-559038737');
