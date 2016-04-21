@@ -9,7 +9,7 @@ set -e
 
 # Verify that the libraries are error and warning-free.
 echo "Running dartanalyzer..."
-dartanalyzer lib/fixnum.dart test/all_tests.dart
+dartanalyzer lib/fixnum.dart
 
 # Run the tests.
 echo "Running tests..."
