@@ -319,6 +319,19 @@ void main() {
     });
   });
 
+  group("bitCount", () {
+    test("bitCount", () {
+      expect(new Int64(0).bitCount(), 0);
+      expect(new Int64(1).bitCount(), 1);
+      expect(new Int64.fromInts(0x00000000, 0x003fffff).bitCount(), 22);
+      expect(new Int64.fromInts(0x00000000, 0x00400000).bitCount(), 1);
+      expect(new Int64.fromInts(0x00000fff, 0xffffffff).bitCount(), 44);
+      expect(new Int64.fromInts(0x00001000, 0x00000000).bitCount(), 1);
+      expect(new Int64.fromInts(0x7fffffff, 0xffffffff).bitCount(), 63);
+      expect(new Int64(-1).bitCount(), 64);
+    });
+  });
+
   group("comparison operators", () {
     Int64 largeNeg = new Int64.fromInts(0x82341234, 0x0);
     Int64 largePos = new Int64.fromInts(0x12341234, 0x0);

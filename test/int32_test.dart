@@ -178,6 +178,15 @@ void main() {
     });
   });
 
+  group("bitCount", () {
+    test("bitCount", () {
+      expect(new Int32(0).bitCount(), 0);
+      expect(new Int32(1).bitCount(), 1);
+      expect(new Int32(0xffff).bitCount(), 16);
+      expect(new Int32(-1).bitCount(), 32);
+    });
+  });
+
   group("comparison operators", () {
     test("compareTo", () {
       expect(new Int32(0).compareTo(-1), 1);

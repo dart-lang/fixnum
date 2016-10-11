@@ -574,6 +574,13 @@ class Int64 implements IntX {
     return 64;
   }
 
+  /**
+   * Returns the number of one-bits in this [Int64] as an [int] between
+   * 0 and 64.
+   */
+  int bitCount() =>
+    Int32._bitCount(_l) + Int32._bitCount(_m) + Int32._bitCount(_h);
+
   Int64 toSigned(int width) {
     if (width < 1 || width > 64) throw new RangeError.range(width, 1, 64);
     if (width > _BITS01) {

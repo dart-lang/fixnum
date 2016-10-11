@@ -156,6 +156,11 @@ abstract class IntX implements Comparable<dynamic> {
   int numberOfTrailingZeros();
 
   /**
+   * Returns the number of one-bits in this integer's bit representation.
+   */
+  int bitCount();
+
+  /**
    * Returns the least significant [width] bits of this integer, extending the
    * highest retained bit to the sign.  This is the same as truncating the value
    * to fit in [width] bits using an signed 2-s complement representation.  The

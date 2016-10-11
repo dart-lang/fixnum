@@ -349,6 +349,7 @@ class Int32 implements IntX {
 
   int numberOfLeadingZeros() => _numberOfLeadingZeros(_i);
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
+  int bitCount() => _bitCount(_i);
 
   Int32 toSigned(int width) {
     if (width < 1 || width > 32) throw new RangeError.range(width, 1, 32);
