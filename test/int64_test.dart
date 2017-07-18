@@ -755,9 +755,9 @@ void main() {
     }
 
     check(10);
-    check(9000000000000000000);
-    check(Int64.MAX_VALUE);
-    check(Int64.MIN_VALUE);
+    check(1000000000000000000);
+    check(9223372036854775807); // Int64.MAX_VALUE
+    check(-9223372036854775808); // Int64.MIN_VALUE
   });
 
   group("parse", () {
