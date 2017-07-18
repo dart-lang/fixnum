@@ -6,15 +6,15 @@ dart:
  - stable
 
 dart_task:
- - test: -p vm
- - test: -p firefox -j 1
+ - test: --platform vm
+   xvfb: false
+ - test: --platform firefox -j 1
+ - dartanalyzer
 
 matrix:
   include:
   - dart: stable
     dart_task: dartfmt
-  - dart: dev
-    dart_task: dartanalyzer --fatal-warnings
 
 ## Only building master means that we don't run two builds for each pull request.
 #branches:
