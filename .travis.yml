@@ -6,8 +6,8 @@ dart:
  - stable
 
 dart_task:
- - test: --platform vm
- - test: --platform firefox -j 1
+ - test: -p vm
+ - test: -p firefox -j 1
 
 matrix:
   include:
