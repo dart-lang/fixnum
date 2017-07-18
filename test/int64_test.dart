@@ -747,6 +747,19 @@ void main() {
     expect(-(Int64.MIN_VALUE + new Int64(1)), Int64.MAX_VALUE);
   });
 
+  test("", () {
+    check(int n) {
+      // Sign change should commute with conversion.
+      expect(-new Int64(-n), new Int64(n));
+      expect(new Int64(-n), -new Int64(n));
+    }
+
+    check(10);
+    check(9000000000000000000);
+    check(Int64.MAX_VALUE);
+    check(Int64.MIN_VALUE);
+  });
+
   group("parse", () {
     test("parseRadix10", () {
       checkInt(int x) {
