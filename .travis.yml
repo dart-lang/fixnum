@@ -16,9 +16,9 @@ matrix:
   - dart: stable
     dart_task: dartfmt
 
-## Only building master means that we don't run two builds for each pull request.
-#branches:
-#  only: [master]
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
 
 cache:
   directories:
