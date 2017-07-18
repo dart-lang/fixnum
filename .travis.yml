@@ -9,7 +9,7 @@ dart_task:
  - test: --platform vm
    xvfb: false
  - test: --platform firefox -j 1
- - dartanalyzer
+ - dartanalyzer --fatal-warnings
 
 matrix:
   include:
