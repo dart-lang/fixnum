@@ -768,14 +768,14 @@ void main() {
     expect(const Int64.fromInt(1000000), new Int64(1000000));
     expect(const Int64.fromInt(1000000000000), new Int64(1000000000000));
     expect(const Int64.fromInt(1000000000000000000),
-           new Int64(1000000000000000000));
+        new Int64(1000000000000000000));
 
     expect(const Int64.fromInt(-10), new Int64(-10));
     expect(const Int64.fromInt(-100), new Int64(-100));
     expect(const Int64.fromInt(-1000000), new Int64(-1000000));
     expect(const Int64.fromInt(-1000000000000), new Int64(-1000000000000));
     expect(const Int64.fromInt(-1000000000000000000),
-           new Int64(-1000000000000000000));
+        new Int64(-1000000000000000000));
   });
 
   group("parse", () {
