@@ -143,6 +143,53 @@ class Int64 implements IntX {
         : Int64._masked(v0, v1, v2);
   }
 
+
+  // const constructor has to evaluate positive and negative results and choose
+  // between them.
+  const Int64.fromInt([int value = 0])
+      : this.s2(value, value < 0 ? -value : value);
+
+  const Int64.s2(int orig, int value)
+      : this.s3(orig, value, value ~/ 17592186044416);
+
+  const Int64.s3(int orig, int value, int v2)
+      : this.s4(orig, value - v2 * 17592186044416, v2);
+
+  const Int64.s4(int orig, int value, int v2)
+      : this.s5(orig, value, v2, value ~/ 4194304);
+
+  const Int64.s5(int orig, int value, int v2, int v1)
+      : this.s6(orig, v2, v1, value - v1 * 4194304);
+
+  const Int64.s6(int orig, int v2, int v1, int v0)
+      : this.s7(orig, _MASK2 & v2, _MASK & v1, _MASK & v0);
+
+  const Int64.s7(int orig, int v2, int v1, int v0)
+      : this.s8(orig, v2, v1, v0, 0 - v0);
+
+  const Int64.s8(int orig, int v2, int v1, int v0, int diff0)
+      : this.s9(orig, v2, v1, v0, diff0, 0 - v1 - ((diff0 >> _BITS) & 1));
+
+  const Int64.s9(int orig, int v2, int v1, int v0, int diff0, int diff1)
+      : this.s10(orig, v2, v1, v0, diff0, diff1, 0 - v2 - ((diff1 >> _BITS) & 1));
+
+  const Int64.s10(int orig, int v2, int v1, int v0, int diff0, int diff1, int diff2)
+      : this.s11(orig, v2, v1, v0, _MASK & diff0, _MASK & diff1, _MASK2 & diff2);
+
+  const Int64.s11(int orig, int v2, int v1, int v0, int diff0, int diff1, int diff2)
+      : this._bits(orig < 0 ? diff0 : v0,
+                   orig < 0 ? diff1 : v1,
+                   orig < 0 ? diff2 : v2);
+
+
+
+  //static Int64 _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
+  //    int diff0 = a0 - b0;
+  //  int diff1 = a1 - b1 - ((diff0 >> _BITS) & 1);
+  //  int diff2 = a2 - b2 - ((diff1 >> _BITS) & 1);
+  //  return _masked(diff0, diff1, diff2);
+  //}
+                 
   factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
     top <<= 8;

@@ -747,7 +747,7 @@ void main() {
     expect(-(Int64.MIN_VALUE + new Int64(1)), Int64.MAX_VALUE);
   });
 
-  test("", () {
+  test("large negative", () {
     check(int n) {
       // Sign change should commute with conversion.
       expect(-new Int64(-n), new Int64(n));
@@ -759,6 +759,23 @@ void main() {
     check(9223372000000000000); // near Int64.MAX_VALUE, has exact double value
     check(9223372036854775807); // Int64.MAX_VALUE, rounds up to -MIN_VALUE
     check(-9223372036854775808); // Int64.MIN_VALUE
+  });
+
+  test("const constructor", () {
+    expect(const Int64.fromInt(0), new Int64(0));
+    expect(const Int64.fromInt(10), new Int64(10));
+    expect(const Int64.fromInt(100), new Int64(100));
+    expect(const Int64.fromInt(1000000), new Int64(1000000));
+    expect(const Int64.fromInt(1000000000000), new Int64(1000000000000));
+    expect(const Int64.fromInt(1000000000000000000),
+           new Int64(1000000000000000000));
+
+    expect(const Int64.fromInt(-10), new Int64(-10));
+    expect(const Int64.fromInt(-100), new Int64(-100));
+    expect(const Int64.fromInt(-1000000), new Int64(-1000000));
+    expect(const Int64.fromInt(-1000000000000), new Int64(-1000000000000));
+    expect(const Int64.fromInt(-1000000000000000000),
+           new Int64(-1000000000000000000));
   });
 
   group("parse", () {
