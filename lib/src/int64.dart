@@ -183,13 +183,6 @@ class Int64 implements IntX {
       : this._bits(orig < 0 ? diff0 : v0, orig < 0 ? diff1 : v1,
             orig < 0 ? diff2 : v2);
 
-  //static Int64 _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
-  //    int diff0 = a0 - b0;
-  //  int diff1 = a1 - b1 - ((diff0 >> _BITS) & 1);
-  //  int diff2 = a2 - b2 - ((diff1 >> _BITS) & 1);
-  //  return _masked(diff0, diff1, diff2);
-  //}
-
   factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
     top <<= 8;

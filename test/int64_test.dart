@@ -774,8 +774,20 @@ void main() {
     expect(const Int64.fromInt(-100), new Int64(-100));
     expect(const Int64.fromInt(-1000000), new Int64(-1000000));
     expect(const Int64.fromInt(-1000000000000), new Int64(-1000000000000));
-    expect(const Int64.fromInt(-1000000000000000000),
+
+
+    expect(new Int64.fromInt(1000000000000000000),
+        new Int64(1000000000000000000));
+    expect(new Int64.fromInt(-1000000000000000000),
         new Int64(-1000000000000000000));
+
+    for (int i = 1; i < 1000000000000000000; i = i * 2) {
+      expect(new Int64.fromInt(i), new Int64(i));
+      expect(new Int64.fromInt(-i), new Int64(-i));
+    }
+    for (int i = 1; i < 1000000000000000000; i = i * 10) {
+      expect(new Int64.fromInt(i), new Int64(i));
+    }
   });
 
   group("parse", () {
