@@ -7,3 +7,8 @@ dev_dependencies:
   test: ^0.12.0
 environment:
   sdk: ">=1.8.3 <2.0.0-dev.infinity"
+dependency_overrides:
+  test:
+    git:
+      url: "https://github.com/grouma/test"
+      ref: "debug-firefox"
