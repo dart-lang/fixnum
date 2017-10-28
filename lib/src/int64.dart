@@ -58,21 +58,78 @@ class Int64 implements IntX {
    */
   static const Int64 TWO = const Int64._bits(2, 0, 0);
 
+  static const _constants = const <Int64>[ZERO, ONE, TWO];
+
   /**
    * Constructs an [Int64] with a given bitwise representation.  No validation
    * is performed.
    */
   const Int64._bits(this._l, this._m, this._h);
 
-  /**
-   * Parses a [String] in a given [radix] between 2 and 36 and returns an
-   * [Int64].
-   */
-  static Int64 parseRadix(String s, int radix) {
-    return _parseRadix(s, Int32._validateRadix(radix));
+
+  /// Parses a string into the numerical value.
+  ///
+  /// The input has the same syntax as [int.parse]. Leading an trailing
+  /// whitespace is ignored. If [radix] is not specified (or `null`) the radix
+  /// defaults to `10`, or 16 if the input has a `"0x"` prefix.
+  ///
+  /// Throws a FormatException if input is malformed.
+  static Int64 parse(String s, {int radix}) {
+    Int64 result = tryParse(s, radix: radix);
+    if (result != null) return result;
+    throw new FormatException('Not a valid Int64 integer', s);
   }
 
-  static Int64 _parseRadix(String s, int radix) {
+  /// Parses a string like [Int64.parse], but returns `null` for malformed
+  /// inputs.
+  static Int64 tryParse(String s, {int radix}) {
+    if (radix != null) Int32._validateRadix(radix);
+    return _tryParse(s, radix);
+  }
+  
+  /// Parses a decimal [String] and returns an [Int64].
+  ///
+  /// The string must contain only decimal digits, optionally preceeded by a
+  /// negative sign.
+  static Int64 parseInt(String s) => _parseRadixOld(s, 10);
+
+  /// Parses a hexadecimal [String] and returns an [Int64].
+  ///
+  /// The string must contain only hexadecimal digits, optionally preceeded by a
+  /// negative sign.
+  static Int64 parseHex(String s) => _parseRadixOld(s, 16);
+
+  /// Parses a [String] in a given [radix] between 2 and 36 and returns an
+  /// [Int64].
+  ///
+  /// Use `Int64.parse(s, radix: r)` in place of `Int64.parseRadix(s, r)`.
+  static Int64 parseRadix(String s, int radix) {
+    return _parseRadixOld(s, Int32._validateRadix(radix));
+  }
+
+  static Int64 _tryParse(String s, int radix) {
+    // A radix-36 digit is 5.17 bits, so 10 digits can fit 52 bits, the
+    // safe-integer range of a JavaScript Number.
+    if (s.length <= 10) _parseViaInt(s, radix);
+    s = s.trim();
+    if (radix == null) {
+      if (s.startsWith('-0x')) return _parseRadix(s, true, 4, 16);
+      if (s.startsWith('0x')) return _parseRadix(s, false, 3, 16);
+      radix = 10;
+    }
+    if (s.startsWith('-')) return _parseRadix(s, true, 1, radix);
+    return _parseRadix(s, false, 0, radix);
+  }
+
+  static Int64 _parseViaInt(String s, int radix) {
+    int value = int.parse(s, radix: radix, onError: _returnNull);
+    if (value == null) return null;
+    return new Int64(value);
+  }
+
+  static int _returnNull(_) => null;
+  
+  static Int64 _parseRadixOld(String s, int radix) {
     int i = 0;
     bool negative = false;
     if (s[0] == '-') {
@@ -106,15 +163,34 @@ class Int64 implements IntX {
     return Int64._masked(d0, d1, d2);
   }
 
-  /**
-   * Parses a decimal [String] and returns an [Int64].
-   */
-  static Int64 parseInt(String s) => _parseRadix(s, 10);
+  static Int64 _parseRadix(String s, bool negative, int start, int radix) {
+    int i = start;
+    int d0 = 0, d1 = 0, d2 = 0; //  low, middle, high components.
+    for (; i < s.length; i++) {
+      int c = s.codeUnitAt(i);
+      int digit = Int32._decodeDigit(c);
+      if (digit < 0 || digit >= radix)  {
+        return null;
+      }
 
-  /**
-   * Parses a hexadecimal [String] and returns an [Int64].
-   */
-  static Int64 parseHex(String s) => _parseRadix(s, 16);
+      // [radix] and [digit] are at most 6 bits, component is 22, so we can
+      // multiply and add within 30 bit temporary values.
+      d0 = d0 * radix + digit;
+      int carry = d0 >> _BITS;
+      d0 = _MASK & d0;
+
+      d1 = d1 * radix + carry;
+      carry = d1 >> _BITS;
+      d1 = _MASK & d1;
+
+      d2 = d2 * radix + carry;
+      d2 = _MASK2 & d2;
+    }
+
+    if (negative) return _negate(d0, d1, d2);
+
+    return Int64._masked(d0, d1, d2);
+  }
 
   //
   // Public constructors
@@ -124,12 +200,13 @@ class Int64 implements IntX {
    * Constructs an [Int64] with a given [int] value; zero by default.
    */
   factory Int64([int value = 0]) {
-    int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
-    if (value < 0) {
+    if (value < _constants.length) {
+      if (value >= 0) return _constants[value];
       negative = true;
       value = -value;
     }
+    int v0 = 0, v1 = 0, v2 = 0;
     // Avoid using bitwise operations that in JavaScript coerce their input to
     // 32 bits.
     v2 = value ~/ 17592186044416; // 2^44
