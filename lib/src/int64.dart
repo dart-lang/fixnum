@@ -58,14 +58,18 @@ class Int64 implements IntX {
    */
   static const Int64 TWO = const Int64._bits(2, 0, 0);
 
-  static const _constants = const <Int64>[ZERO, ONE, TWO];
+  /**
+   * An [Int64] constant equal to -1.
+   */
+  static const Int64 NEGATIVE_ONE = const Int64._bits(_MASK, _MASK, _MASK2);
+
+  static const _constants = const <Int64>[NEGATIVE_ONE, ZERO, ONE, TWO];
 
   /**
    * Constructs an [Int64] with a given bitwise representation.  No validation
    * is performed.
    */
   const Int64._bits(this._l, this._m, this._h);
-
 
   /// Parses a string into the numerical value.
   ///
@@ -86,7 +90,7 @@ class Int64 implements IntX {
     if (radix != null) Int32._validateRadix(radix);
     return _tryParse(s, radix);
   }
-  
+
   /// Parses a decimal [String] and returns an [Int64].
   ///
   /// The string must contain only decimal digits, optionally preceeded by a
@@ -128,7 +132,7 @@ class Int64 implements IntX {
   }
 
   static int _returnNull(_) => null;
-  
+
   static Int64 _parseRadixOld(String s, int radix) {
     int i = 0;
     bool negative = false;
@@ -164,12 +168,11 @@ class Int64 implements IntX {
   }
 
   static Int64 _parseRadix(String s, bool negative, int start, int radix) {
-    int i = start;
     int d0 = 0, d1 = 0, d2 = 0; //  low, middle, high components.
-    for (; i < s.length; i++) {
+    for (int i = start; i < s.length; i++) {
       int c = s.codeUnitAt(i);
       int digit = Int32._decodeDigit(c);
-      if (digit < 0 || digit >= radix)  {
+      if (digit < 0 || digit >= radix) {
         return null;
       }
 
@@ -201,8 +204,8 @@ class Int64 implements IntX {
    */
   factory Int64([int value = 0]) {
     bool negative = false;
-    if (value < _constants.length) {
-      if (value >= 0) return _constants[value];
+    if (value < _constants.length - 1) {
+      if (value >= -1) return _constants[value + 1];
       negative = true;
       value = -value;
     }
@@ -724,7 +727,7 @@ class Int64 implements IntX {
   /**
    * Returns the value of this [Int64] as a decimal [String].
    */
-  String toString() => _toRadixString(10);
+  String toString() => _toRadixString(10, 0, '');
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
@@ -739,11 +742,12 @@ class Int64 implements IntX {
     return hexStr;
   }
 
-  String toRadixString(int radix) {
-    return _toRadixString(Int32._validateRadix(radix));
+  String toRadixString(int radix, {int digits, String prefix}) {
+    return _toRadixString(
+        Int32._validateRadix(radix), digits ?? 0, prefix ?? "");
   }
 
-  String _toRadixString(int radix) {
+  String _toRadixString(int radix, int minDigits, String prefix) {
     int d0 = _l;
     int d1 = _m;
     int d2 = _h;
@@ -836,7 +840,9 @@ class Int64 implements IntX {
     }
     int residue = (d2 << 20) + (d1 << 10) + d0;
     String leadingDigits = residue == 0 ? '' : residue.toRadixString(radix);
-    return '$sign$leadingDigits$chunk1$chunk2$chunk3';
+    String digits = '$leadingDigits$chunk1$chunk2$chunk3';
+    digits = digits.padLeft(minDigits, '0');
+    return '$sign$prefix$digits';
   }
 
   // Table of 'fat' radix values.  Each entry for index `i` is the largest power

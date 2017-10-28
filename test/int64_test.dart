@@ -45,9 +45,19 @@ void main() {
     expect(() => op(receiver, 'foo'), throwsArgumentErrorMentioning(r'"foo"'));
   }
 
+  group("constants", () {
+    test("toString", () {
+      expect(Int64.NEGATIVE_ONE.toString(), "-1");
+      expect(Int64.ZERO.toString(), "0");
+      expect(Int64.ONE.toString(), "1");
+      expect(Int64.TWO.toString(), "2");
+    });
+  });
+
   group("is-tests", () {
     test("isEven", () {
       expect((-Int64.ONE).isEven, false);
+      expect(Int64.NEGATIVE_ONE.isEven, false);
       expect(Int64.ZERO.isEven, true);
       expect(Int64.ONE.isEven, false);
       expect(Int64.TWO.isEven, true);
@@ -836,7 +846,7 @@ void main() {
       expect(() => Int64.parse('0', radix: 37), throwsRangeError);
       expect(() => Int64.parse('xyzzy', radix: -1), throwsRangeError);
       expect(() => Int64.parse('xyzzy', radix: 10), throwsFormatException);
-});
+    });
 
     test("parseRadixN", () {
       check(String s, int r) {
@@ -912,9 +922,19 @@ void main() {
       expect(Int64.MAX_VALUE.toRadixString(14), "4340724c6c71dc7a7");
       expect(Int64.MAX_VALUE.toRadixString(15), "160e2ad3246366807");
       expect(Int64.MAX_VALUE.toRadixString(16), "7fffffffffffffff");
+    });
+
+    test("toRadixString-bad-radix", () {
       expect(() => new Int64(42).toRadixString(-1), throwsArgumentError);
       expect(() => new Int64(42).toRadixString(0), throwsArgumentError);
       expect(() => new Int64(42).toRadixString(37), throwsArgumentError);
+    });
+
+    test("toRadixString-digits-prefix", () {
+      expect(
+          new Int64(256).toRadixString(16, digits: 4, prefix: "0x"), "0x0100");
+      expect(new Int64(-256).toRadixString(16, digits: 4, prefix: "0x"),
+          "-0x0100");
     });
   });
 }
