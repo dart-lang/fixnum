@@ -114,15 +114,28 @@ class Int64 implements IntX {
   static Int64 _tryParse(String s, int radix) {
     // A radix-36 digit is 5.17 bits, so 10 digits can fit 52 bits, the
     // safe-integer range of a JavaScript Number.
-    if (s.length <= 10) _parseViaInt(s, radix);
+    if (s.length <= 10) return _parseViaInt(s, radix);
     s = s.trim();
+
+    // Try the fast path again. In the common case where no whitespace is
+    // trimmed, the test serves to guard the `codeUnitAt` references.
+    if (s.length <= 10) return _parseViaInt(s, radix);
+
+    bool negative = false;
+    int start = 0;
+    int ch = s.codeUnitAt(start);
+    negative = ch == 45; /* '-' */
+    if (negative || ch == 43 /* '+' */) start++;
+
     if (radix == null) {
-      if (s.startsWith('-0x')) return _parseRadix(s, true, 4, 16);
-      if (s.startsWith('0x')) return _parseRadix(s, false, 3, 16);
+      if (s.codeUnitAt(start) == 48 /* '0' */ &&
+          s.codeUnitAt(start + 1) | 32 == 120 /* 'x' or 'X' */) {
+        return _parseRadix(s, negative, start + 2, 16);
+      }
       radix = 10;
     }
-    if (s.startsWith('-')) return _parseRadix(s, true, 1, radix);
-    return _parseRadix(s, false, 0, radix);
+
+    return _parseRadix(s, negative, start, radix);
   }
 
   static Int64 _parseViaInt(String s, int radix) {

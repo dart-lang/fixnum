@@ -772,6 +772,78 @@ void main() {
   });
 
   group("parse", () {
+    test("parse", () {
+      checkInt(int x) {
+        expect(Int64.parse('$x'), new Int64(x));
+        expect(Int64.parse('$x', radix: 10), new Int64(x));
+        expect(Int64.tryParse('$x'), new Int64(x));
+        expect(Int64.tryParse('$x', radix: 10), new Int64(x));
+      }
+
+      checkInt(0);
+      checkInt(1);
+      checkInt(-1);
+      checkInt(1000);
+      checkInt(12345678);
+      checkInt(-12345678);
+      checkInt(2147483647);
+      checkInt(2147483648);
+      checkInt(-2147483647);
+      checkInt(-2147483648);
+      checkInt(4294967295);
+      checkInt(4294967296);
+      checkInt(-4294967295);
+      checkInt(-4294967296);
+      checkInt(1000000000000);
+      checkInt(-1000000000000);
+      checkInt(1000000000001);
+      checkInt(-1000000000001);
+      expect(() => Int64.parseRadix('xyzzy', -1), throwsArgumentError);
+      expect(() => Int64.parseRadix('plugh', 10), throwsFormatException);
+
+      expect(() => Int64.parse('plugh', radix: 10), throwsFormatException);
+      expect(Int64.tryParse('plugh', radix: 10), isNull);
+
+      Int64 big = new Int64(1000000000000);
+      expect(Int64.tryParse('1000000000000'), big);
+      expect(Int64.tryParse('1000000000001'), big + 1);
+      expect(Int64.tryParse('+1000000000000'), big);
+      expect(Int64.tryParse('+1000000000001'), big + 1);
+      expect(Int64.tryParse('-1000000000000'), -big);
+      expect(Int64.tryParse('-1000000000001'), -(big + 1));
+
+      expect(Int64.tryParse('  1000000000000   '), big);
+      expect(Int64.tryParse('  1000000000001   '), big + 1);
+      expect(Int64.tryParse('  +1000000000000  '), big);
+      expect(Int64.tryParse('  +1000000000001  '), big + 1);
+      expect(Int64.tryParse('  -1000000000000  '), -big);
+      expect(Int64.tryParse('  -1000000000001  '), -(big + 1));
+      expect(Int64.tryParse('  + 1000000000000  '), isNull);
+      expect(Int64.tryParse('  + 1000000000001  '), isNull);
+      expect(Int64.tryParse('  - 1000000000000  '), isNull);
+      expect(Int64.tryParse('  - 1000000000001  '), isNull);
+
+      checkHex(String s, Int64 value) {
+        check(String s, Int64 value) {
+          expect(Int64.tryParse(s), value,
+              reason: '"$s" should parse to $value');
+        }
+
+        check(s.toLowerCase(), value);
+        check(s.toUpperCase(), value);
+        check(' ${s.toUpperCase()} ', value);
+        check(' ${s.toLowerCase()} ', value);
+      }
+
+      Int64 big2 = new Int64(0x1000000000);
+      checkHex('0x1000000000', big2);
+      checkHex('0x1000000001', big2 + 1);
+      checkHex('+0x1000000000', big2);
+      checkHex('+0x1000000001', big2 + 1);
+      checkHex('-0x1000000000', -big2);
+      checkHex('-0x1000000001', -(big2 + 1));
+    });
+
     test("parseRadix10", () {
       checkInt(int x) {
         expect(Int64.parseRadix('$x', 10), new Int64(x));
@@ -795,6 +867,10 @@ void main() {
       checkInt(4294967296);
       checkInt(-4294967295);
       checkInt(-4294967296);
+      checkInt(1000000000000);
+      checkInt(-1000000000000);
+      checkInt(1000000000001);
+      checkInt(-1000000000001);
       expect(() => Int64.parseRadix('xyzzy', -1), throwsArgumentError);
       expect(() => Int64.parseRadix('plugh', 10), throwsFormatException);
 
