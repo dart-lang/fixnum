@@ -1,5 +1,6 @@
 *.sw?
 .idea
+.dart_tool/
 .pub
 build
 packages
