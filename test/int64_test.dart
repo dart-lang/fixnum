@@ -896,7 +896,7 @@ void main() {
           Int64 value = (new Int64(high5) << (64 - 5)) + new Int64(low2);
           String s = value.toStringUnsigned();
           Int64 value2 = Int64.parseRadix(s, 10);
-          expect(value2, value)l
+          expect(value2, value);
         }
       }
     });
