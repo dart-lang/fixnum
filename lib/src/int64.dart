@@ -654,6 +654,18 @@ class Int64 implements IntX {
    * Returns the value of this [Int64] as a decimal [String].
    */
   String toString() => _toRadixString(10);
+  
+  /// Returns the value of this [Int64] interpreted as an unsigned
+  /// value
+  
+  String toStringUnsigned([int radix]) {
+    if (radix == null) {
+      radix = 10;
+    } else {
+      Int32._validateRadix(radix);
+    }
+    return _toRadixStringUnsigned(radix, _l, _m, _h, '');
+  }
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
@@ -695,7 +707,10 @@ class Int64 implements IntX {
       // d2, d1, d0 now are an unsigned 64 bit integer for MIN_VALUE and an
       // unsigned 63 bit integer for other values.
     }
+    return _toRadixStringUnsigned(radix, d0, d1, d2, sign);
+  }
 
+  String _toRadixStringUnsigned(int radix, int d0, int d1, int d2, String sign) {
     // Rearrange components into five components where all but the most
     // significant are 10 bits wide.
     //
