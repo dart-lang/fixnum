@@ -655,16 +655,10 @@ class Int64 implements IntX {
    */
   String toString() => _toRadixString(10);
   
-  /// Returns the value of this [Int64] interpreted as an unsigned
-  /// value
-  
+  /// Returns the String of digits of this [Int64] interpreted as an unsigned
+  /// value.
   String toStringUnsigned([int radix]) {
-    if (radix == null) {
-      radix = 10;
-    } else {
-      Int32._validateRadix(radix);
-    }
-    if (isZero) return "0";
+    radix = radix == null ? 10 : Int32._validateRadix(radix);
     return _toRadixStringUnsigned(radix, _l, _m, _h, '');
   }
 
