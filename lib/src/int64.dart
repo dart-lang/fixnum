@@ -664,6 +664,7 @@ class Int64 implements IntX {
     } else {
       Int32._validateRadix(radix);
     }
+    if (isZero) return "0";
     return _toRadixStringUnsigned(radix, _l, _m, _h, '');
   }
 
@@ -689,8 +690,6 @@ class Int64 implements IntX {
     int d1 = _m;
     int d2 = _h;
 
-    if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
-
     String sign = '';
     if ((d2 & _SIGN_BIT_MASK) != 0) {
       sign = '-';
@@ -711,6 +710,8 @@ class Int64 implements IntX {
   }
 
   String _toRadixStringUnsigned(int radix, int d0, int d1, int d2, String sign) {
+    if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
+  
     // Rearrange components into five components where all but the most
     // significant are 10 bits wide.
     //
