@@ -671,9 +671,14 @@ class Int64 implements IntX {
   /**
    * Returns the digits of [this] when interpreted as an unsigned 64-bit value.
    */
-  String toStringUnsigned([int radix]) {
-    return _toRadixStringUnsigned(
-        radix == null ? 10 : Int32._validateRadix(radix), _l, _m, _h, '');
+  @pragma('dart2js:noInline')
+  String toStringUnsigned() {
+    return _toRadixStringUnsigned(10, _l, _m, _h, '');
+  }
+
+  @pragma('dart2js:noInline')
+  String toRadixStringUnsigned(int radix) {
+    return _toRadixStringUnsigned(Int32._validateRadix(radix), _l, _m, _h, '');
   }
 
   String toRadixString(int radix) {
@@ -704,7 +709,7 @@ class Int64 implements IntX {
     return _toRadixStringUnsigned(radix, d0, d1, d2, sign);
   }
 
-  String _toRadixStringUnsigned(
+  static String _toRadixStringUnsigned(
       int radix, int d0, int d1, int d2, String sign) {
     if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
 
