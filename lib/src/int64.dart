@@ -654,13 +654,6 @@ class Int64 implements IntX {
    * Returns the value of this [Int64] as a decimal [String].
    */
   String toString() => _toRadixString(10);
-  
-  /// Returns the String of digits of this [Int64] interpreted as an unsigned
-  /// value.
-  String toStringUnsigned([int radix]) {
-    radix = radix == null ? 10 : Int32._validateRadix(radix);
-    return _toRadixStringUnsigned(radix, _l, _m, _h, '');
-  }
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
@@ -673,6 +666,14 @@ class Int64 implements IntX {
       x = x.shiftRightUnsigned(4);
     }
     return hexStr;
+  }
+
+  /**
+   * Returns the digits of [this] when interpreted as an unsigned 64-bit value.
+   */
+  String toStringUnsigned([int radix]) {
+    return _toRadixStringUnsigned(
+        radix == null ? 10 : Int32._validateRadix(radix), _l, _m, _h, '');
   }
 
   String toRadixString(int radix) {
@@ -703,9 +704,10 @@ class Int64 implements IntX {
     return _toRadixStringUnsigned(radix, d0, d1, d2, sign);
   }
 
-  String _toRadixStringUnsigned(int radix, int d0, int d1, int d2, String sign) {
+  String _toRadixStringUnsigned(
+      int radix, int d0, int d1, int d2, String sign) {
     if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
-  
+
     // Rearrange components into five components where all but the most
     // significant are 10 bits wide.
     //
