@@ -899,12 +899,17 @@ void main() {
 
       for (Int64 value in values) {
         for (int radix = 2; radix <= 36; radix++) {
-          String s1 = value.toStringUnsigned(radix);
+          String s1 = value.toRadixStringUnsigned(radix);
           Int64 v2 = Int64.parseRadix(s1, radix);
           expect(v2, value);
-          String s2 = v2.toStringUnsigned(radix);
+          String s2 = v2.toRadixStringUnsigned(radix);
           expect(s2, s1);
         }
+        String s3 = value.toStringUnsigned();
+        Int64 v4 = Int64.parseInt(s3);
+        expect(v4, value);
+        String s4 = v4.toStringUnsigned();
+        expect(s4, s3);
       }
     });
   });
