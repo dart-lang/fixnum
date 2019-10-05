@@ -64,7 +64,8 @@ class Int64 implements IntX {
       i++;
     }
 
-    if (i >= s.length) {
+    // TODO(https://github.com/dart-lang/sdk/issues/38728): use (i >= s.length).
+    if (!(i < s.length)) {
       throw FormatException("No digits in '$s'");
     }
 
