@@ -729,7 +729,7 @@ void main() {
     expect(-(Int64.MIN_VALUE + Int64(1)), Int64.MAX_VALUE);
   });
 
-  test("misc", () {
+  test("negation", () {
     check(int n) {
       // Sign change should commute with conversion.
       expect(-Int64(-n), Int64(n));
