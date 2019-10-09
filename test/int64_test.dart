@@ -272,7 +272,7 @@ void main() {
       expect(Int64(-0x12345678).remainder(Int64(0x22)),
           Int64(-0x12345678.remainder(0x22) as int));
       expect(Int32(0x12345678).remainder(Int64(0x22)),
-          Int64(0x12345678.remainder(0x22)as int));
+          Int64(0x12345678.remainder(0x22) as int));
       argumentErrorTest("%", (a, b) => a % b);
     });
 
