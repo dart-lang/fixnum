@@ -55,7 +55,7 @@ class Int32 implements IntX {
   static Int32 parseRadix(String s, int radix) {
     _validateRadix(radix);
     var x = ZERO;
-    for (int i = 0; i < s.length; i++) {
+    for (var i = 0; i < s.length; i++) {
       var c = s.codeUnitAt(i);
       var digit = _decodeDigit(c);
       if (digit < 0 || digit >= radix) {
@@ -193,7 +193,7 @@ class Int32 implements IntX {
   @override
   Int32 remainder(other) {
     if (other is Int64) {
-      Int64 t = toInt64();
+      var t = toInt64();
       return (t - (t ~/ other) * other).toInt32();
     }
     return (this - (this ~/ other) * other) as Int32;
@@ -384,8 +384,9 @@ class Int32 implements IntX {
     return Int32(_i.toUnsigned(width));
   }
 
+  @override
   List<int> toBytes() {
-    List<int> result = List<int>(4);
+    List<int> result = List(4);
     result[0] = _i & 0xff;
     result[1] = (_i >> 8) & 0xff;
     result[2] = (_i >> 16) & 0xff;
