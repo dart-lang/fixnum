@@ -386,7 +386,7 @@ class Int32 implements IntX {
 
   @override
   List<int> toBytes() {
-    List<int> result = List(4);
+    var result = List<int>(4);
     result[0] = _i & 0xff;
     result[1] = (_i >> 8) & 0xff;
     result[2] = (_i >> 16) & 0xff;
