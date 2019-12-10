@@ -54,12 +54,12 @@ class Int32 implements IntX {
   // TODO(rice) - Make this faster by converting several digits at once.
   static Int32 parseRadix(String s, int radix) {
     _validateRadix(radix);
-    Int32 x = ZERO;
+    var x = ZERO;
     for (int i = 0; i < s.length; i++) {
-      int c = s.codeUnitAt(i);
-      int digit = _decodeDigit(c);
+      var c = s.codeUnitAt(i);
+      var digit = _decodeDigit(c);
       if (digit < 0 || digit >= radix) {
-        throw FormatException("Non-radix code unit: $c");
+        throw FormatException('Non-radix code unit: $c');
       }
       x = ((x * radix) + digit) as Int32;
     }
