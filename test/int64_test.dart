@@ -6,7 +6,7 @@
 // that the operations have an expected type.
 //
 // ignore_for_file: omit_local_variable_types
- 
+
 library int64test;
 
 import 'package:fixnum/fixnum.dart';
