@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Many locals are declared as `int` or `double`. We keep local variable types
+// because the types are critical to the efficiency of many operations.
+//
+// ignore_for_file: omit_local_variable_types
+
 part of fixnum;
 
 /// An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
