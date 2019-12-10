@@ -42,7 +42,7 @@ void main() {
     });
   });
 
-  argumentErrorTest(name, op, [receiver = Int64.ONE]) {
+  void argumentErrorTest(name, op, [receiver = Int64.ONE]) {
     Matcher throwsArgumentErrorMentioning(String substring) =>
         throwsA((e) => e is ArgumentError && '$e'.contains(substring));
 
