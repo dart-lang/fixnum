@@ -7,6 +7,8 @@ dart:
 dart_task:
  - test: --platform vm
    xvfb: false
+ - test: --platform vm --enable-experiment=non-nullable
+   xvfb: false
  - test: --platform chrome
  - dartanalyzer: --fatal-warnings --fatal-infos --enable-experiment=non-nullable .
 
