@@ -274,7 +274,7 @@ class Int32 implements IntX {
   /// Returns [:true:] if this [Int32] has the same numeric value as the
   /// given object.  The argument may be an [int] or an [IntX].
   @override
-  bool operator ==(Object? other) {
+  bool operator ==(Object other) {
     if (other is Int32) {
       return _i == other._i;
     } else if (other is Int64) {
@@ -286,11 +286,10 @@ class Int32 implements IntX {
   }
 
   @override
-  int compareTo(Object? other) {
+  int compareTo(Object other) {
     if (other is Int64) {
       return toInt64().compareTo(other);
     }
-    if (other == null) throw ArgumentError(null);
     return _i.compareTo(_toInt(other));
   }
 

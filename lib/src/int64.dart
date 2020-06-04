@@ -462,10 +462,7 @@ class Int64 implements IntX {
   }
 
   @override
-  int compareTo(Object? other) {
-    if (other == null) throw ArgumentError(null);
-    return _compareTo(other);
-  }
+  int compareTo(Object other) => _compareTo(other);
 
   int _compareTo(Object other) {
     Int64 o = _promote(other);

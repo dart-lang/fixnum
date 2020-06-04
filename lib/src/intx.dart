@@ -5,7 +5,7 @@
 part of fixnum;
 
 /// A fixed-precision integer.
-abstract class IntX implements Comparable<dynamic> {
+abstract class IntX implements Comparable<Object> {
   /// Addition operator.
   IntX operator +(Object other);
 
@@ -66,7 +66,7 @@ abstract class IntX implements Comparable<dynamic> {
   IntX shiftRightUnsigned(int shiftAmount);
 
   @override
-  int compareTo(Object? other);
+  int compareTo(Object other);
 
   /// Returns `true` if and only if [other] is an int or IntX equal in
   /// value to this integer.
