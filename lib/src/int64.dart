@@ -633,16 +633,18 @@ class Int64 implements IntX {
   }
 
   @override
-  List<int> toBytes() => [
-        _l & 0xff,
-        (_l >> 8) & 0xff,
-        ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f),
-        (_m >> 2) & 0xff,
-        (_m >> 10) & 0xff,
-        ((_h << 4) & 0xf0) | ((_m >> 18) & 0xf),
-        (_h >> 4) & 0xff,
-        (_h >> 12) & 0xff,
-      ];
+  List<int> toBytes() {
+    var result = List<int>.filled(8, 0);
+    result[0] = _l & 0xff;
+    result[1] = (_l >> 8) & 0xff;
+    result[2] = ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f);
+    result[3] = (_m >> 2) & 0xff;
+    result[4] = (_m >> 10) & 0xff;
+    result[5] = ((_h << 4) & 0xf0) | ((_m >> 18) & 0xf);
+    result[6] = (_h >> 4) & 0xff;
+    result[7] = (_h >> 12) & 0xff;
+    return result;
+  }
 
   @override
   double toDouble() => toInt().toDouble();

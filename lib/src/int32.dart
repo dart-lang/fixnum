@@ -386,12 +386,14 @@ class Int32 implements IntX {
   }
 
   @override
-  List<int> toBytes() => [
-        _i & 0xff,
-        (_i >> 8) & 0xff,
-        (_i >> 16) & 0xff,
-        (_i >> 24) & 0xff,
-      ];
+  List<int> toBytes() {
+    var result = List<int>.filled(4, 0);
+    result[0] = _i & 0xff;
+    result[1] = (_i >> 8) & 0xff;
+    result[2] = (_i >> 16) & 0xff;
+    result[3] = (_i >> 24) & 0xff;
+    return result;
+  }
 
   @override
   double toDouble() => _i.toDouble();
