@@ -6,6 +6,9 @@ description: >-
   behavior between native and JS runtimes.
 homepage: https://github.com/dart-lang/fixnum
 
+# We are not ready to publish NNBD packages yet.
+publish_to: none
+
 environment:
   sdk: '>=2.9.0-1 <3.0.0'
 
