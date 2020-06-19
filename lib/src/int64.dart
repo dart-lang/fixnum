@@ -133,7 +133,7 @@ class Int64 implements IntX {
         : Int64._masked(v0, v1, v2);
   }
 
-  factory Int64.fromBytes(List<int> bytes) {
+  factory Int64.fromBytes(Uint8List bytes) {
     int top = bytes[7] & 0xff;
     top <<= 8;
     top |= bytes[6] & 0xff;
@@ -153,7 +153,7 @@ class Int64 implements IntX {
     return Int64.fromInts(top, bottom);
   }
 
-  factory Int64.fromBytesBigEndian(List<int> bytes) {
+  factory Int64.fromBytesBigEndian(Uint8List bytes) {
     int top = bytes[0] & 0xff;
     top <<= 8;
     top |= bytes[1] & 0xff;
@@ -630,8 +630,8 @@ class Int64 implements IntX {
   }
 
   @override
-  List<int> toBytes() {
-    var result = List<int>.filled(8, 0);
+  Uint8List toBytes() {
+    var result = Uint8List.filled(8, 0);
     result[0] = _l & 0xff;
     result[1] = (_l >> 8) & 0xff;
     result[2] = ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f);
