@@ -8,6 +8,8 @@
 /// identically whether executed on the Dart VM or compiled to JavaScript.
 library fixnum;
 
+import 'dart:typed_data';
+
 part 'src/intx.dart';
 part 'src/int32.dart';
 part 'src/int64.dart';
