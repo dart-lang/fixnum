@@ -713,6 +713,16 @@ void main() {
       expect(Int64(-1).toBytes(),
           [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]);
     });
+
+    test('toBytesBigEndian', () {
+      expect(Int64(0).toBytesBigEndian(), [0, 0, 0, 0, 0, 0, 0, 0]);
+      expect(Int64.fromInts(0x08070605, 0x04030201).toBytesBigEndian(),
+          [8, 7, 6, 5, 4, 3, 2, 1]);
+      expect(Int64.fromInts(0x01020304, 0x05060708).toBytesBigEndian(),
+          [1, 2, 3, 4, 5, 6, 7, 8]);
+      expect(Int64(-1).toBytesBigEndian(),
+          [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]);
+    });
   });
 
   test('JavaScript 53-bit integer boundary', () {
