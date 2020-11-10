@@ -1,8 +1,4 @@
-## 1.0.0-nullsafety.1
-
-* Update sdk constraints for the real null safety release.
-
-## 1.0.0-nullsafety
+## 1.0.0-nullsafety.0
 
 * Migrate to null safety.
   * This is meant to be mostly non-breaking, for opted in users runtime errors

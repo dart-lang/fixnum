@@ -1,5 +1,5 @@
 name: fixnum
-version: 1.0.0-nullsafety.1
+version: 1.0.0-nullsafety.0
 
 description: >-
   Library for 32- and 64-bit signed fixed-width integers with consistent
@@ -7,7 +7,6 @@ description: >-
 homepage: https://github.com/dart-lang/fixnum
 
 environment:
-  # This must remain a tight constraint until nnbd is stable
   sdk: '>=2.12.0-0 <3.0.0'
 
 dev_dependencies:
