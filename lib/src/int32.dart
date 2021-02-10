@@ -9,36 +9,65 @@ part of fixnum;
 class Int32 implements IntX {
   /// The maximum positive value attainable by an [Int32], namely
   /// 2147483647.
-  static const Int32 MAX_VALUE = Int32._internal(0x7FFFFFFF);
+  @Deprecated('Use [maxValue] instead.')
+  // ignore: constant_identifier_names
+  static const Int32 MAX_VALUE = maxValue;
+
+  /// The maximum positive value attainable by an [Int32], namely
+  /// 2147483647.
+  static const Int32 maxValue = Int32._internal(0x7FFFFFFF);
 
   /// The minimum positive value attainable by an [Int32], namely
   /// -2147483648.
-  static const Int32 MIN_VALUE = Int32._internal(-0x80000000);
+  @Deprecated('Use [minValue] instead.')
+  // ignore: constant_identifier_names
+  static const Int32 MIN_VALUE = minValue;
+
+  /// The minimum positive value attainable by an [Int32], namely
+  /// -2147483648.
+  static const Int32 minValue = Int32._internal(-0x80000000);
 
   /// An [Int32] constant equal to 0.
-  static const Int32 ZERO = Int32._internal(0);
+  @Deprecated('Use [zero] instead.')
+  // ignore: constant_identifier_names
+  static const Int32 ZERO = zero;
+
+  /// An [Int32] constant equal to 0.
+  static const Int32 zero = Int32._internal(0);
 
   /// An [Int32] constant equal to 1.
-  static const Int32 ONE = Int32._internal(1);
+  @Deprecated('Use [one] instead.')
+  // ignore: constant_identifier_names
+  static const Int32 ONE = one;
+
+  /// An [Int32] constant equal to 1.
+  static const Int32 one = Int32._internal(1);
 
   /// An [Int32] constant equal to 2.
+  @Deprecated('Use [two] instead.')
+  // ignore: constant_identifier_names
   static const Int32 TWO = Int32._internal(2);
 
-  // Hex digit char codes
-  static const int _CC_0 = 48; // '0'.codeUnitAt(0)
-  static const int _CC_9 = 57; // '9'.codeUnitAt(0)
-  static const int _CC_a = 97; // 'a'.codeUnitAt(0)
-  static const int _CC_z = 122; // 'z'.codeUnitAt(0)
-  static const int _CC_A = 65; // 'A'.codeUnitAt(0)
-  static const int _CC_Z = 90; // 'Z'.codeUnitAt(0)
+  /// An [Int32] constant equal to 2.
+  static const Int32 two = Int32._internal(2);
 
-  static int _decodeDigit(int c) {
-    if (c >= _CC_0 && c <= _CC_9) {
-      return c - _CC_0;
-    } else if (c >= _CC_a && c <= _CC_z) {
-      return c - _CC_a + 10;
-    } else if (c >= _CC_A && c <= _CC_Z) {
-      return c - _CC_A + 10;
+  // Hex digit char codes
+  static const int _charCode0 = 48; // '0'.codeUnitAt(0)
+  static const int _charCode9 = 57; // '9'.codeUnitAt(0)
+  static const int _charCodeLowercaseA = 97; // 'a'.codeUnitAt(0)
+  static const int _charCodeLowercaseZ = 122; // 'z'.codeUnitAt(0)
+  static const int _charCodeUppercaseA = 65; // 'A'.codeUnitAt(0)
+  static const int _charCodeUppercaseZ = 90; // 'Z'.codeUnitAt(0)
+
+  static int _decodeDigit(int charCode) {
+    if (charCode >= _charCode0 && charCode <= _charCode9) {
+      return charCode - _charCode0;
+    } else if (charCode >= _charCodeLowercaseA &&
+        charCode <= _charCodeLowercaseZ) {
+      return charCode - _charCodeLowercaseA + 10;
+    } else if (charCode >= _charCodeUppercaseA &&
+        charCode <= _charCodeUppercaseZ) {
+      return charCode - _charCodeUppercaseA + 10;
     } else {
       return -1; // bad char code
     }
@@ -52,28 +81,28 @@ class Int32 implements IntX {
   /// Parses a [String] in a given [radix] between 2 and 16 and returns an
   /// [Int32].
   // TODO(rice) - Make this faster by converting several digits at once.
-  static Int32 parseRadix(String s, int radix) {
+  static Int32 parseRadix(String string, int radix) {
     _validateRadix(radix);
-    var x = ZERO;
-    for (var i = 0; i < s.length; i++) {
-      var c = s.codeUnitAt(i);
-      var digit = _decodeDigit(c);
+    var parsedRadix = zero;
+    for (var i = 0; i < string.length; i++) {
+      var charCode = string.codeUnitAt(i);
+      var digit = _decodeDigit(charCode);
       if (digit < 0 || digit >= radix) {
-        throw FormatException('Non-radix code unit: $c');
+        throw FormatException('Non-radix code unit: $charCode');
       }
-      x = ((x * radix) + digit) as Int32;
+      parsedRadix = ((parsedRadix * radix) + digit) as Int32;
     }
-    return x;
+    return parsedRadix;
   }
 
   /// Parses a decimal [String] and returns an [Int32].
-  static Int32 parseInt(String s) => Int32(int.parse(s));
+  static Int32 parseInt(String string) => Int32(int.parse(string));
 
   /// Parses a hexadecimal [String] and returns an [Int32].
-  static Int32 parseHex(String s) => parseRadix(s, 16);
+  static Int32 parseHex(String string) => parseRadix(string, 16);
 
   // Assumes i is <= 32-bit.
-  static int _bitCount(int i) {
+  static int _bitCount(int integer) {
     // See "Hacker's Delight", section 5-1, "Counting 1-Bits".
 
     // The basic strategy is to use "divide and conquer" to
@@ -91,44 +120,46 @@ class Int32 implements IntX {
     // The code below removes unnecessary &'s and uses a
     // trick to remove one instruction in the first line.
 
-    i -= ((i >> 1) & 0x55555555);
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-    i = ((i + (i >> 4)) & 0x0F0F0F0F);
-    i += (i >> 8);
-    i += (i >> 16);
-    return (i & 0x0000003F);
+    integer -= ((integer >> 1) & 0x55555555);
+    integer = (integer & 0x33333333) + ((integer >> 2) & 0x33333333);
+    integer = ((integer + (integer >> 4)) & 0x0F0F0F0F);
+    integer += (integer >> 8);
+    integer += (integer >> 16);
+    return (integer & 0x0000003F);
   }
 
   // Assumes i is <= 32-bit
-  static int _numberOfLeadingZeros(int i) {
-    i |= i >> 1;
-    i |= i >> 2;
-    i |= i >> 4;
-    i |= i >> 8;
-    i |= i >> 16;
-    return _bitCount(~i);
+  static int _numberOfLeadingZeros(int integer) {
+    integer |= integer >> 1;
+    integer |= integer >> 2;
+    integer |= integer >> 4;
+    integer |= integer >> 8;
+    integer |= integer >> 16;
+    return _bitCount(~integer);
   }
 
-  static int _numberOfTrailingZeros(int i) => _bitCount((i & -i) - 1);
+  static int _numberOfTrailingZeros(int integer) =>
+      _bitCount((integer & -integer) - 1);
 
   // The internal value, kept in the range [MIN_VALUE, MAX_VALUE].
-  final int _i;
+  final int _integer;
 
-  const Int32._internal(int i) : _i = i;
+  const Int32._internal(int integer) : _integer = integer;
 
   /// Constructs an [Int32] from an [int].  Only the low 32 bits of the input
   /// are used.
-  Int32([int i = 0]) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+  Int32([int integer = 0])
+      : _integer = (integer & 0x7fffffff) - (integer & 0x80000000);
 
   // Returns the [int] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
-  int _toInt(Object val) {
-    if (val is Int32) {
-      return val._i;
-    } else if (val is int) {
-      return val;
+  int _toInt(Object value) {
+    if (value is Int32) {
+      return value._integer;
+    } else if (value is int) {
+      return value;
     }
-    throw ArgumentError(val);
+    throw ArgumentError(value);
   }
 
   // The +, -, * , &, |, and ^ operaters deal with types as follows:
@@ -150,7 +181,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() + other;
     }
-    return Int32(_i + _toInt(other));
+    return Int32(_integer + _toInt(other));
   }
 
   @override
@@ -158,11 +189,11 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() - other;
     }
-    return Int32(_i - _toInt(other));
+    return Int32(_integer - _toInt(other));
   }
 
   @override
-  Int32 operator -() => Int32(-_i);
+  Int32 operator -() => Int32(-_integer);
 
   @override
   IntX operator *(Object other) {
@@ -179,7 +210,7 @@ class Int32 implements IntX {
       // Result will be Int32
       return (toInt64() % other).toInt32();
     }
-    return Int32(_i % _toInt(other));
+    return Int32(_integer % _toInt(other));
   }
 
   @override
@@ -187,7 +218,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return (toInt64() ~/ other).toInt32();
     }
-    return Int32(_i ~/ _toInt(other));
+    return Int32(_integer ~/ _toInt(other));
   }
 
   @override
@@ -204,7 +235,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return (toInt64() & other).toInt32();
     }
-    return Int32(_i & _toInt(other));
+    return Int32(_integer & _toInt(other));
   }
 
   @override
@@ -212,7 +243,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return (toInt64() | other).toInt32();
     }
-    return Int32(_i | _toInt(other));
+    return Int32(_integer | _toInt(other));
   }
 
   @override
@@ -220,53 +251,53 @@ class Int32 implements IntX {
     if (other is Int64) {
       return (toInt64() ^ other).toInt32();
     }
-    return Int32(_i ^ _toInt(other));
+    return Int32(_integer ^ _toInt(other));
   }
 
   @override
-  Int32 operator ~() => Int32(~_i);
+  Int32 operator ~() => Int32(~_integer);
 
   @override
-  Int32 operator <<(int n) {
-    if (n < 0) {
-      throw ArgumentError(n);
+  Int32 operator <<(int number) {
+    if (number < 0) {
+      throw ArgumentError(number);
     }
-    if (n >= 32) {
-      return ZERO;
+    if (number >= 32) {
+      return zero;
     }
-    return Int32(_i << n);
+    return Int32(_integer << number);
   }
 
   @override
-  Int32 operator >>(int n) {
-    if (n < 0) {
-      throw ArgumentError(n);
+  Int32 operator >>(int number) {
+    if (number < 0) {
+      throw ArgumentError(number);
     }
-    if (n >= 32) {
-      return isNegative ? const Int32._internal(-1) : ZERO;
+    if (number >= 32) {
+      return isNegative ? const Int32._internal(-1) : zero;
     }
     int value;
-    if (_i >= 0) {
-      value = _i >> n;
+    if (_integer >= 0) {
+      value = _integer >> number;
     } else {
-      value = (_i >> n) | (0xffffffff << (32 - n));
+      value = (_integer >> number) | (0xffffffff << (32 - number));
     }
     return Int32(value);
   }
 
   @override
-  Int32 shiftRightUnsigned(int n) {
-    if (n < 0) {
-      throw ArgumentError(n);
+  Int32 shiftRightUnsigned(int number) {
+    if (number < 0) {
+      throw ArgumentError(number);
     }
-    if (n >= 32) {
-      return ZERO;
+    if (number >= 32) {
+      return zero;
     }
     int value;
-    if (_i >= 0) {
-      value = _i >> n;
+    if (_integer >= 0) {
+      value = _integer >> number;
     } else {
-      value = (_i >> n) & ((1 << (32 - n)) - 1);
+      value = (_integer >> number) & ((1 << (32 - number)) - 1);
     }
     return Int32(value);
   }
@@ -276,11 +307,11 @@ class Int32 implements IntX {
   @override
   bool operator ==(Object other) {
     if (other is Int32) {
-      return _i == other._i;
+      return _integer == other._integer;
     } else if (other is Int64) {
       return toInt64() == other;
     } else if (other is int) {
-      return _i == other;
+      return _integer == other;
     }
     return false;
   }
@@ -290,7 +321,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64().compareTo(other);
     }
-    return _i.compareTo(_toInt(other));
+    return _integer.compareTo(_toInt(other));
   }
 
   @override
@@ -298,7 +329,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() < other;
     }
-    return _i < _toInt(other);
+    return _integer < _toInt(other);
   }
 
   @override
@@ -306,7 +337,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() <= other;
     }
-    return _i <= _toInt(other);
+    return _integer <= _toInt(other);
   }
 
   @override
@@ -314,7 +345,7 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() > other;
     }
-    return _i > _toInt(other);
+    return _integer > _toInt(other);
   }
 
   @override
@@ -322,35 +353,35 @@ class Int32 implements IntX {
     if (other is Int64) {
       return toInt64() >= other;
     }
-    return _i >= _toInt(other);
+    return _integer >= _toInt(other);
   }
 
   @override
-  bool get isEven => (_i & 0x1) == 0;
+  bool get isEven => (_integer & 0x1) == 0;
 
   @override
-  bool get isMaxValue => _i == 2147483647;
+  bool get isMaxValue => _integer == 2147483647;
 
   @override
-  bool get isMinValue => _i == -2147483648;
+  bool get isMinValue => _integer == -2147483648;
 
   @override
-  bool get isNegative => _i < 0;
+  bool get isNegative => _integer < 0;
 
   @override
-  bool get isOdd => (_i & 0x1) == 1;
+  bool get isOdd => (_integer & 0x1) == 1;
 
   @override
-  bool get isZero => _i == 0;
+  bool get isZero => _integer == 0;
 
   @override
-  int get bitLength => _i.bitLength;
+  int get bitLength => _integer.bitLength;
 
   @override
-  int get hashCode => _i;
+  int get hashCode => _integer;
 
   @override
-  Int32 abs() => _i < 0 ? Int32(-_i) : this;
+  Int32 abs() => _integer < 0 ? Int32(-_integer) : this;
 
   @override
   Int32 clamp(Object lowerLimit, Object upperLimit) {
@@ -367,51 +398,51 @@ class Int32 implements IntX {
   }
 
   @override
-  int numberOfLeadingZeros() => _numberOfLeadingZeros(_i);
+  int numberOfLeadingZeros() => _numberOfLeadingZeros(_integer);
 
   @override
-  int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
+  int numberOfTrailingZeros() => _numberOfTrailingZeros(_integer);
 
   @override
   Int32 toSigned(int width) {
     if (width < 1 || width > 32) throw RangeError.range(width, 1, 32);
-    return Int32(_i.toSigned(width));
+    return Int32(_integer.toSigned(width));
   }
 
   @override
   Int32 toUnsigned(int width) {
     if (width < 0 || width > 32) throw RangeError.range(width, 0, 32);
-    return Int32(_i.toUnsigned(width));
+    return Int32(_integer.toUnsigned(width));
   }
 
   @override
   List<int> toBytes() {
     var result = List<int>.filled(4, 0);
-    result[0] = _i & 0xff;
-    result[1] = (_i >> 8) & 0xff;
-    result[2] = (_i >> 16) & 0xff;
-    result[3] = (_i >> 24) & 0xff;
+    result[0] = _integer & 0xff;
+    result[1] = (_integer >> 8) & 0xff;
+    result[2] = (_integer >> 16) & 0xff;
+    result[3] = (_integer >> 24) & 0xff;
     return result;
   }
 
   @override
-  double toDouble() => _i.toDouble();
+  double toDouble() => _integer.toDouble();
 
   @override
-  int toInt() => _i;
+  int toInt() => _integer;
 
   @override
   Int32 toInt32() => this;
 
   @override
-  Int64 toInt64() => Int64(_i);
+  Int64 toInt64() => Int64(_integer);
 
   @override
-  String toString() => _i.toString();
+  String toString() => _integer.toString();
 
   @override
-  String toHexString() => _i.toRadixString(16);
+  String toHexString() => _integer.toRadixString(16);
 
   @override
-  String toRadixString(int radix) => _i.toRadixString(radix);
+  String toRadixString(int radix) => _integer.toRadixString(radix);
 }
