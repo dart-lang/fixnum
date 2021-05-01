@@ -1,3 +1,8 @@
+## 1.0.1
+
+* Updated code to adhere to
+[Effective Dart](https://dart.dev/guides/language/effective-dart).
+
 ## 1.0.0
 
 * Stable null safety release.

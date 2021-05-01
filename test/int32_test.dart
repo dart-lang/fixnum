@@ -8,45 +8,45 @@ import 'package:test/test.dart';
 void main() {
   group('isX tests', () {
     test('isEven', () {
-      expect((-Int32.ONE).isEven, false);
-      expect(Int32.ZERO.isEven, true);
-      expect(Int32.ONE.isEven, false);
-      expect(Int32.TWO.isEven, true);
+      expect((-Int32.one).isEven, false);
+      expect(Int32.zero.isEven, true);
+      expect(Int32.one.isEven, false);
+      expect(Int32.two.isEven, true);
     });
     test('isMaxValue', () {
-      expect(Int32.MIN_VALUE.isMaxValue, false);
-      expect(Int32.ZERO.isMaxValue, false);
-      expect(Int32.MAX_VALUE.isMaxValue, true);
+      expect(Int32.minValue.isMaxValue, false);
+      expect(Int32.zero.isMaxValue, false);
+      expect(Int32.maxValue.isMaxValue, true);
     });
     test('isMinValue', () {
-      expect(Int32.MIN_VALUE.isMinValue, true);
-      expect(Int32.ZERO.isMinValue, false);
-      expect(Int32.MAX_VALUE.isMinValue, false);
+      expect(Int32.minValue.isMinValue, true);
+      expect(Int32.zero.isMinValue, false);
+      expect(Int32.maxValue.isMinValue, false);
     });
     test('isNegative', () {
-      expect(Int32.MIN_VALUE.isNegative, true);
-      expect(Int32.ZERO.isNegative, false);
-      expect(Int32.ONE.isNegative, false);
+      expect(Int32.minValue.isNegative, true);
+      expect(Int32.zero.isNegative, false);
+      expect(Int32.one.isNegative, false);
     });
     test('isOdd', () {
-      expect((-Int32.ONE).isOdd, true);
-      expect(Int32.ZERO.isOdd, false);
-      expect(Int32.ONE.isOdd, true);
-      expect(Int32.TWO.isOdd, false);
+      expect((-Int32.one).isOdd, true);
+      expect(Int32.zero.isOdd, false);
+      expect(Int32.one.isOdd, true);
+      expect(Int32.two.isOdd, false);
     });
     test('isZero', () {
-      expect(Int32.MIN_VALUE.isZero, false);
-      expect(Int32.ZERO.isZero, true);
-      expect(Int32.MAX_VALUE.isZero, false);
+      expect(Int32.minValue.isZero, false);
+      expect(Int32.zero.isZero, true);
+      expect(Int32.maxValue.isZero, false);
     });
     test('bitLength', () {
       expect(Int32(-2).bitLength, 1);
-      expect((-Int32.ONE).bitLength, 0);
-      expect(Int32.ZERO.bitLength, 0);
-      expect(Int32.ONE.bitLength, 1);
+      expect((-Int32.one).bitLength, 0);
+      expect(Int32.zero.bitLength, 0);
+      expect(Int32.one.bitLength, 1);
       expect(Int32(2).bitLength, 2);
-      expect(Int32.MAX_VALUE.bitLength, 31);
-      expect(Int32.MIN_VALUE.bitLength, 31);
+      expect(Int32.maxValue.bitLength, 31);
+      expect(Int32.minValue.bitLength, 31);
     });
   });
 
@@ -61,7 +61,7 @@ void main() {
       expect(n3 + n2, Int32(8642));
       expect(n3 + n4, Int32(-11110));
       expect(n3 + Int64(1), Int64(-1233));
-      expect(Int32.MAX_VALUE + 1, Int32.MIN_VALUE);
+      expect(Int32.maxValue + 1, Int32.minValue);
     });
 
     test('-', () {
@@ -69,12 +69,12 @@ void main() {
       expect(n3 - n2, Int32(-11110));
       expect(n3 - n4, Int32(8642));
       expect(n3 - Int64(1), Int64(-1235));
-      expect(Int32.MIN_VALUE - 1, Int32.MAX_VALUE);
+      expect(Int32.minValue - 1, Int32.maxValue);
     });
 
     test('unary -', () {
       expect(-n1, Int32(-1234));
-      expect(-Int32.ZERO, Int32.ZERO);
+      expect(-Int32.zero, Int32.zero);
     });
 
     test('*', () {
@@ -96,7 +96,7 @@ void main() {
       expect(Int32(0x12345678) ~/ Int64(0x22), Int32(0x12345678 ~/ 0x22));
       expect(Int32(829893893) ~/ 1919, Int32(432461));
       expect(
-          () => Int32(17) ~/ Int32.ZERO,
+          () => Int32(17) ~/ Int32.zero,
           // with dart2js, `UnsupportedError` is thrown
           // on the VM: IntegerDivisionByZeroException
           throwsA(anyOf(const TypeMatcher<IntegerDivisionByZeroException>(),
@@ -122,35 +122,35 @@ void main() {
     });
 
     test('abs', () {
-      // NOTE: Int32.MIN_VALUE.abs() is undefined
-      expect((Int32.MIN_VALUE + 1).abs(), Int32.MAX_VALUE);
+      // NOTE: Int32.minValue.abs() is undefined
+      expect((Int32.minValue + 1).abs(), Int32.maxValue);
       expect(Int32(-1).abs(), Int32(1));
       expect(Int32(0).abs(), Int32(0));
       expect(Int32(1).abs(), Int32(1));
-      expect(Int32.MAX_VALUE.abs(), Int32.MAX_VALUE);
+      expect(Int32.maxValue.abs(), Int32.maxValue);
     });
 
     test('clamp', () {
-      var val = Int32(17);
-      expect(val.clamp(20, 30), Int32(20));
-      expect(val.clamp(10, 20), Int32(17));
-      expect(val.clamp(10, 15), Int32(15));
+      var value = Int32(17);
+      expect(value.clamp(20, 30), Int32(20));
+      expect(value.clamp(10, 20), Int32(17));
+      expect(value.clamp(10, 15), Int32(15));
 
-      expect(val.clamp(Int32(20), Int32(30)), Int32(20));
-      expect(val.clamp(Int32(10), Int32(20)), Int32(17));
-      expect(val.clamp(Int32(10), Int32(15)), Int32(15));
+      expect(value.clamp(Int32(20), Int32(30)), Int32(20));
+      expect(value.clamp(Int32(10), Int32(20)), Int32(17));
+      expect(value.clamp(Int32(10), Int32(15)), Int32(15));
 
-      expect(val.clamp(Int64(20), Int64(30)), Int32(20));
-      expect(val.clamp(Int64(10), Int64(20)), Int32(17));
-      expect(val.clamp(Int64(10), Int64(15)), Int32(15));
-      expect(val.clamp(Int64.MIN_VALUE, Int64(30)), Int32(17));
-      expect(val.clamp(Int64(10), Int64.MAX_VALUE), Int32(17));
+      expect(value.clamp(Int64(20), Int64(30)), Int32(20));
+      expect(value.clamp(Int64(10), Int64(20)), Int32(17));
+      expect(value.clamp(Int64(10), Int64(15)), Int32(15));
+      expect(value.clamp(Int64.minValue, Int64(30)), Int32(17));
+      expect(value.clamp(Int64(10), Int64.maxValue), Int32(17));
 
-      expect(() => val.clamp(30.5, 40.5), throwsArgumentError);
-      expect(() => val.clamp(5.5, 10.5), throwsArgumentError);
-      expect(() => val.clamp('a', 1), throwsArgumentError);
-      expect(() => val.clamp(1, 'b'), throwsArgumentError);
-      expect(() => val.clamp('a', 1), throwsArgumentError);
+      expect(() => value.clamp(30.5, 40.5), throwsArgumentError);
+      expect(() => value.clamp(5.5, 10.5), throwsArgumentError);
+      expect(() => value.clamp('a', 1), throwsArgumentError);
+      expect(() => value.clamp(1, 'b'), throwsArgumentError);
+      expect(() => value.clamp('a', 1), throwsArgumentError);
     });
   });
 
@@ -189,8 +189,8 @@ void main() {
       expect(Int32(17) < Int64(18), true);
       expect(Int32(17) < Int64(17), false);
       expect(Int32(17) < Int64(16), false);
-      expect(Int32.MIN_VALUE < Int32.MAX_VALUE, true);
-      expect(Int32.MAX_VALUE < Int32.MIN_VALUE, false);
+      expect(Int32.minValue < Int32.maxValue, true);
+      expect(Int32.maxValue < Int32.minValue, false);
     });
 
     test('<=', () {
@@ -200,8 +200,8 @@ void main() {
       expect(Int32(17) <= Int64(18), true);
       expect(Int32(17) <= Int64(17), true);
       expect(Int32(17) <= Int64(16), false);
-      expect(Int32.MIN_VALUE <= Int32.MAX_VALUE, true);
-      expect(Int32.MAX_VALUE <= Int32.MIN_VALUE, false);
+      expect(Int32.minValue <= Int32.maxValue, true);
+      expect(Int32.maxValue <= Int32.minValue, false);
     });
 
     test('==', () {
@@ -211,7 +211,7 @@ void main() {
       expect(Int32(17), isNot(equals(Int64(18))));
       expect(Int32(17), equals(Int64(17)));
       expect(Int32(17), isNot(equals(Int64(16))));
-      expect(Int32.MIN_VALUE, isNot(equals(Int32.MAX_VALUE)));
+      expect(Int32.minValue, isNot(equals(Int32.maxValue)));
       expect(Int32(17), isNot(equals(18)));
       expect(Int32(17) == 17, isTrue);
       expect(Int32(17), isNot(equals(16)));
@@ -226,8 +226,8 @@ void main() {
       expect(Int32(17) >= Int64(18), false);
       expect(Int32(17) >= Int64(17), true);
       expect(Int32(17) >= Int64(16), true);
-      expect(Int32.MIN_VALUE >= Int32.MAX_VALUE, false);
-      expect(Int32.MAX_VALUE >= Int32.MIN_VALUE, true);
+      expect(Int32.minValue >= Int32.maxValue, false);
+      expect(Int32.maxValue >= Int32.minValue, true);
     });
 
     test('>', () {
@@ -237,8 +237,8 @@ void main() {
       expect(Int32(17) > Int64(18), false);
       expect(Int32(17) > Int64(17), false);
       expect(Int32(17) > Int64(16), true);
-      expect(Int32.MIN_VALUE > Int32.MAX_VALUE, false);
-      expect(Int32.MAX_VALUE > Int32.MIN_VALUE, true);
+      expect(Int32.minValue > Int32.maxValue, false);
+      expect(Int32.maxValue > Int32.minValue, true);
     });
   });
 
@@ -273,15 +273,15 @@ void main() {
   group('bitshift operators', () {
     test('<<', () {
       expect(Int32(0x12345678) << 7, Int32(0x12345678 << 7));
-      expect(Int32(0x12345678) << 32, Int32.ZERO);
-      expect(Int32(0x12345678) << 33, Int32.ZERO);
+      expect(Int32(0x12345678) << 32, Int32.zero);
+      expect(Int32(0x12345678) << 33, Int32.zero);
       expect(() => Int32(17) << -1, throwsArgumentError);
     });
 
     test('>>', () {
       expect(Int32(0x12345678) >> 7, Int32(0x12345678 >> 7));
-      expect(Int32(0x12345678) >> 32, Int32.ZERO);
-      expect(Int32(0x12345678) >> 33, Int32.ZERO);
+      expect(Int32(0x12345678) >> 32, Int32.zero);
+      expect(Int32(0x12345678) >> 33, Int32.zero);
       expect(Int32(-42) >> 32, Int32(-1));
       expect(Int32(-42) >> 33, Int32(-1));
       expect(() => Int32(17) >> -1, throwsArgumentError);
@@ -289,34 +289,34 @@ void main() {
 
     test('shiftRightUnsigned', () {
       expect(Int32(0x12345678).shiftRightUnsigned(7), Int32(0x12345678 >> 7));
-      expect(Int32(0x12345678).shiftRightUnsigned(32), Int32.ZERO);
-      expect(Int32(0x12345678).shiftRightUnsigned(33), Int32.ZERO);
-      expect(Int32(-42).shiftRightUnsigned(32), Int32.ZERO);
-      expect(Int32(-42).shiftRightUnsigned(33), Int32.ZERO);
+      expect(Int32(0x12345678).shiftRightUnsigned(32), Int32.zero);
+      expect(Int32(0x12345678).shiftRightUnsigned(33), Int32.zero);
+      expect(Int32(-42).shiftRightUnsigned(32), Int32.zero);
+      expect(Int32(-42).shiftRightUnsigned(33), Int32.zero);
       expect(() => (Int32(17).shiftRightUnsigned(-1)), throwsArgumentError);
     });
   });
 
   group('conversions', () {
     test('toSigned', () {
-      expect(Int32.ONE.toSigned(2), Int32.ONE);
-      expect(Int32.ONE.toSigned(1), -Int32.ONE);
-      expect(Int32.MAX_VALUE.toSigned(32), Int32.MAX_VALUE);
-      expect(Int32.MIN_VALUE.toSigned(32), Int32.MIN_VALUE);
-      expect(Int32.MAX_VALUE.toSigned(31), -Int32.ONE);
-      expect(Int32.MIN_VALUE.toSigned(31), Int32.ZERO);
-      expect(() => Int32.ONE.toSigned(0), throwsRangeError);
-      expect(() => Int32.ONE.toSigned(33), throwsRangeError);
+      expect(Int32.one.toSigned(2), Int32.one);
+      expect(Int32.one.toSigned(1), -Int32.one);
+      expect(Int32.maxValue.toSigned(32), Int32.maxValue);
+      expect(Int32.minValue.toSigned(32), Int32.minValue);
+      expect(Int32.maxValue.toSigned(31), -Int32.one);
+      expect(Int32.minValue.toSigned(31), Int32.zero);
+      expect(() => Int32.one.toSigned(0), throwsRangeError);
+      expect(() => Int32.one.toSigned(33), throwsRangeError);
     });
     test('toUnsigned', () {
-      expect(Int32.ONE.toUnsigned(1), Int32.ONE);
-      expect(Int32.ONE.toUnsigned(0), Int32.ZERO);
-      expect(Int32.MAX_VALUE.toUnsigned(32), Int32.MAX_VALUE);
-      expect(Int32.MIN_VALUE.toUnsigned(32), Int32.MIN_VALUE);
-      expect(Int32.MAX_VALUE.toUnsigned(31), Int32.MAX_VALUE);
-      expect(Int32.MIN_VALUE.toUnsigned(31), Int32.ZERO);
-      expect(() => Int32.ONE.toUnsigned(-1), throwsRangeError);
-      expect(() => Int32.ONE.toUnsigned(33), throwsRangeError);
+      expect(Int32.one.toUnsigned(1), Int32.one);
+      expect(Int32.one.toUnsigned(0), Int32.zero);
+      expect(Int32.maxValue.toUnsigned(32), Int32.maxValue);
+      expect(Int32.minValue.toUnsigned(32), Int32.minValue);
+      expect(Int32.maxValue.toUnsigned(31), Int32.maxValue);
+      expect(Int32.minValue.toUnsigned(31), Int32.zero);
+      expect(() => Int32.one.toUnsigned(-1), throwsRangeError);
+      expect(() => Int32.one.toUnsigned(33), throwsRangeError);
     });
     test('toDouble', () {
       expect(Int32(17).toDouble(), same(17.0));

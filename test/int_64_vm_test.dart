@@ -32,10 +32,10 @@ void main() {
   });
 
   test('', () {
-    void check(int n) {
+    void check(int number) {
       // Sign change should commute with conversion.
-      expect(-Int64(-n), Int64(n));
-      expect(Int64(-n), -Int64(n));
+      expect(-Int64(-number), Int64(number));
+      expect(Int64(-number), -Int64(number));
     }
 
     check(10);

@@ -10,103 +10,132 @@
 part of fixnum;
 
 /// An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
+///
 /// Arithmetic operations may overflow in order to maintain this range.
 class Int64 implements IntX {
-  // A 64-bit integer is represented internally as three non-negative
-  // integers, storing the 22 low, 22 middle, and 20 high bits of the
-  // 64-bit value.  _l (low) and _m (middle) are in the range
-  // [0, 2^22 - 1] and _h (high) is in the range [0, 2^20 - 1].
+  // A 64-bit integer is represented internally as three non-negative integers
+  // storing the 22 low, 22 middle, and 20 high bits of the 64-bit value. _low
+  // and _middle are in the range [0, 2^22 - 1] and _high is in the range
+  // [0, 2^20 - 1].
   //
-  // The values being assigned to _l, _m and _h in initialization are masked to
-  // force them into the above ranges.  Sometimes we know that the value is a
-  // small non-negative integer but the dart2js compiler can't infer that, so a
-  // few of the masking operations are not needed for correctness but are
-  // helpful for dart2js code quality.
+  // The values being assigned to _low, _middle and _high in initialization are
+  // masked to force them into the above ranges.  Sometimes we know that the
+  // value is a small non-negative integer but the dart2js compiler can't infer
+  // that, so a few of the masking operations are not needed for correctness but
+  // are helpful for dart2js code quality.
 
-  final int _l, _m, _h;
+  final int _low, _middle, _high;
 
-  // Note: several functions require _BITS == 22 -- do not change this value.
-  static const int _BITS = 22;
-  static const int _BITS01 = 44; // 2 * _BITS
-  static const int _BITS2 = 20; // 64 - _BITS01
-  static const int _MASK = 4194303; // (1 << _BITS) - 1
-  static const int _MASK2 = 1048575; // (1 << _BITS2) - 1
-  static const int _SIGN_BIT = 19; // _BITS2 - 1
-  static const int _SIGN_BIT_MASK = 1 << _SIGN_BIT;
+  // Note: several functions require _bitCount == 22 -- do not change this value.
+  static const int _lowBitCount = 22;
+  static const int _middleBitCount = 22;
+  static const int _lowAndMiddleBitCount = _lowBitCount + _middleBitCount; // 44
+  static const int _highBitCount = 64 - _lowAndMiddleBitCount; // 20
+  static const int _mask = (1 << _lowBitCount) - 1; // 4194303
+  static const int _maskHigh = (1 << _highBitCount) - 1; // 1048575
+  static const int _signBit = _highBitCount - 1; // 19
+  static const int _signBitMask = 1 << _signBit;
 
   /// The maximum positive value attainable by an [Int64], namely
   /// 9,223,372,036,854,775,807.
-  static const Int64 MAX_VALUE = Int64._bits(_MASK, _MASK, _MASK2 >> 1);
+  @Deprecated('Use [minValue] instead.')
+  // ignore: constant_identifier_names
+  static const Int64 MAX_VALUE = maxValue;
+
+  /// The maximum positive value attainable by an [Int64], namely
+  /// 9,223,372,036,854,775,807.
+  static const Int64 maxValue = Int64._bits(_mask, _mask, _maskHigh >> 1);
 
   /// The minimum positive value attainable by an [Int64], namely
   /// -9,223,372,036,854,775,808.
-  static const Int64 MIN_VALUE = Int64._bits(0, 0, _SIGN_BIT_MASK);
+  @Deprecated('Use [minValue] instead.')
+  // ignore: constant_identifier_names
+  static const Int64 MIN_VALUE = minValue;
+
+  /// The minimum positive value attainable by an [Int64], namely
+  /// -9,223,372,036,854,775,808.
+  static const Int64 minValue = Int64._bits(0, 0, _signBitMask);
 
   /// An [Int64] constant equal to 0.
-  static const Int64 ZERO = Int64._bits(0, 0, 0);
+  @Deprecated('Use [zero] instead.')
+  // ignore: constant_identifier_names
+  static const Int64 ZERO = zero;
+
+  /// An [Int64] constant equal to 0.
+  static const Int64 zero = Int64._bits(0, 0, 0);
 
   /// An [Int64] constant equal to 1.
-  static const Int64 ONE = Int64._bits(1, 0, 0);
+  @Deprecated('Use [one] instead.')
+  // ignore: constant_identifier_names
+  static const Int64 ONE = one;
+
+  /// An [Int64] constant equal to 1.
+  static const Int64 one = Int64._bits(1, 0, 0);
 
   /// An [Int64] constant equal to 2.
-  static const Int64 TWO = Int64._bits(2, 0, 0);
+  @Deprecated('Use [two] instead.')
+  // ignore: constant_identifier_names
+  static const Int64 TWO = two;
+
+  /// An [Int64] constant equal to 2.
+  static const Int64 two = Int64._bits(2, 0, 0);
 
   /// Constructs an [Int64] with a given bitwise representation.  No validation
   /// is performed.
-  const Int64._bits(this._l, this._m, this._h);
+  const Int64._bits(this._low, this._middle, this._high);
 
   /// Parses a [String] in a given [radix] between 2 and 36 and returns an
   /// [Int64].
-  static Int64 parseRadix(String s, int radix) {
-    return _parseRadix(s, Int32._validateRadix(radix));
+  static Int64 parseRadix(String string, int radix) {
+    return _parseRadix(string, Int32._validateRadix(radix));
   }
 
-  static Int64 _parseRadix(String s, int radix) {
-    int i = 0;
+  static Int64 _parseRadix(String string, int radix) {
+    int index = 0;
     bool negative = false;
-    if (i < s.length && s[0] == '-') {
+    if (index < string.length && string[0] == '-') {
       negative = true;
-      i++;
+      index++;
     }
 
-    // TODO(https://github.com/dart-lang/sdk/issues/38728). Replace with "if (i
-    // >= s.length)".
-    if (!(i < s.length)) {
-      throw FormatException("No digits in '$s'");
+    // TODO(https://github.com/dart-lang/sdk/issues/38728). Replace with
+    // "if (index >= string.length)".
+    if (!(index < string.length)) {
+      throw FormatException("No digits in '$string'");
     }
 
-    int d0 = 0, d1 = 0, d2 = 0; //  low, middle, high components.
-    for (; i < s.length; i++) {
-      int c = s.codeUnitAt(i);
-      int digit = Int32._decodeDigit(c);
+    int low = 0, middle = 0, high = 0; //  low, middle, high components.
+    for (; index < string.length; index++) {
+      int char = string.codeUnitAt(index);
+      int digit = Int32._decodeDigit(char);
       if (digit < 0 || digit >= radix) {
-        throw FormatException('Non-radix char code: $c');
+        throw FormatException('Non-radix char code: $char');
       }
 
       // [radix] and [digit] are at most 6 bits, component is 22, so we can
       // multiply and add within 30 bit temporary values.
-      d0 = d0 * radix + digit;
-      int carry = d0 >> _BITS;
-      d0 = _MASK & d0;
+      low = low * radix + digit;
+      int carry = low >> _lowBitCount;
+      low = _mask & low;
 
-      d1 = d1 * radix + carry;
-      carry = d1 >> _BITS;
-      d1 = _MASK & d1;
+      middle = middle * radix + carry;
+      carry = middle >> _lowBitCount;
+      middle = _mask & middle;
 
-      d2 = d2 * radix + carry;
-      d2 = _MASK2 & d2;
+      high = high * radix + carry;
+      high = _maskHigh & high;
     }
 
-    if (negative) return _negate(d0, d1, d2);
+    if (negative) return _negate(low, middle, high);
 
-    return Int64._masked(d0, d1, d2);
+    return Int64._masked(low, middle, high);
   }
 
   /// Parses a decimal [String] and returns an [Int64].
-  static Int64 parseInt(String s) => _parseRadix(s, 10);
+  static Int64 parseInt(String string) => _parseRadix(string, 10);
 
   /// Parses a hexadecimal [String] and returns an [Int64].
-  static Int64 parseHex(String s) => _parseRadix(s, 16);
+  static Int64 parseHex(String string) => _parseRadix(string, 16);
 
   //
   // Public constructors
@@ -114,7 +143,7 @@ class Int64 implements IntX {
 
   /// Constructs an [Int64] with a given [int] value; zero by default.
   factory Int64([int value = 0]) {
-    int v0 = 0, v1 = 0, v2 = 0;
+    int valueLow = 0, valueMiddle = 0, valueHigh = 0;
     bool negative = false;
     if (value < 0) {
       negative = true;
@@ -122,15 +151,16 @@ class Int64 implements IntX {
     }
     // Avoid using bitwise operations that in JavaScript coerce their input to
     // 32 bits.
-    v2 = value ~/ 17592186044416; // 2^44
-    value -= v2 * 17592186044416;
-    v1 = value ~/ 4194304; // 2^22
-    value -= v1 * 4194304;
-    v0 = value;
+    valueHigh = value ~/ 17592186044416; // 2^44
+    value -= valueHigh * 17592186044416;
+    valueMiddle = value ~/ 4194304; // 2^22
+    value -= valueMiddle * 4194304;
+    valueLow = value;
 
     return negative
-        ? Int64._negate(_MASK & v0, _MASK & v1, _MASK2 & v2)
-        : Int64._masked(v0, v1, v2);
+        ? Int64._negate(
+            _mask & valueLow, _mask & valueMiddle, _maskHigh & valueHigh)
+        : Int64._masked(valueLow, valueMiddle, valueHigh);
   }
 
   factory Int64.fromBytes(List<int> bytes) {
@@ -178,10 +208,10 @@ class Int64 implements IntX {
   factory Int64.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
-    int d0 = _MASK & bottom;
-    int d1 = ((0xfff & top) << 10) | (0x3ff & (bottom >> _BITS));
-    int d2 = _MASK2 & (top >> 12);
-    return Int64._masked(d0, d1, d2);
+    int low = _mask & bottom;
+    int middle = ((0xfff & top) << 10) | (0x3ff & (bottom >> _lowBitCount));
+    int high = _maskHigh & (top >> 12);
+    return Int64._masked(low, middle, high);
   }
 
   // Returns the [Int64] representation of the specified value. Throws
@@ -199,264 +229,280 @@ class Int64 implements IntX {
 
   @override
   Int64 operator +(Object other) {
-    Int64 o = _promote(other);
-    int sum0 = _l + o._l;
-    int sum1 = _m + o._m + (sum0 >> _BITS);
-    int sum2 = _h + o._h + (sum1 >> _BITS);
-    return Int64._masked(sum0, sum1, sum2);
+    Int64 addend = _promote(other);
+    int sumLow = _low + addend._low;
+    int sumMiddle = _middle + addend._middle + (sumLow >> _lowBitCount);
+    int sumHigh = _high + addend._high + (sumMiddle >> _lowBitCount);
+    return Int64._masked(sumLow, sumMiddle, sumHigh);
   }
 
   @override
   Int64 operator -(Object other) {
-    Int64 o = _promote(other);
-    return _sub(_l, _m, _h, o._l, o._m, o._h);
+    Int64 minuend = _promote(other);
+    return _subtract(
+        _low, _middle, _high, minuend._low, minuend._middle, minuend._high);
   }
 
   @override
-  Int64 operator -() => _negate(_l, _m, _h);
+  Int64 operator -() => _negate(_low, _middle, _high);
 
   @override
   Int64 operator *(Object other) {
-    Int64 o = _promote(other);
+    Int64 multiplicand = _promote(other);
 
     // Grab 13-bit chunks.
-    int a0 = _l & 0x1fff;
-    int a1 = (_l >> 13) | ((_m & 0xf) << 9);
-    int a2 = (_m >> 4) & 0x1fff;
-    int a3 = (_m >> 17) | ((_h & 0xff) << 5);
-    int a4 = (_h & 0xfff00) >> 8;
+    int lowest = _low & 0x1fff;
+    int low = (_low >> 13) | ((_middle & 0xf) << 9);
+    int middle = (_middle >> 4) & 0x1fff;
+    int high = (_middle >> 17) | ((_high & 0xff) << 5);
+    int highest = (_high & 0xfff00) >> 8;
 
-    int b0 = o._l & 0x1fff;
-    int b1 = (o._l >> 13) | ((o._m & 0xf) << 9);
-    int b2 = (o._m >> 4) & 0x1fff;
-    int b3 = (o._m >> 17) | ((o._h & 0xff) << 5);
-    int b4 = (o._h & 0xfff00) >> 8;
+    int operandLowest = multiplicand._low & 0x1fff;
+    int operandLow =
+        (multiplicand._low >> 13) | ((multiplicand._middle & 0xf) << 9);
+    int operandMiddle = (multiplicand._middle >> 4) & 0x1fff;
+    int operandHigh =
+        (multiplicand._middle >> 17) | ((multiplicand._high & 0xff) << 5);
+    int operandHighest = (multiplicand._high & 0xfff00) >> 8;
 
     // Compute partial products.
     // Optimization: if b is small, avoid multiplying by parts that are 0.
-    int p0 = a0 * b0; // << 0
-    int p1 = a1 * b0; // << 13
-    int p2 = a2 * b0; // << 26
-    int p3 = a3 * b0; // << 39
-    int p4 = a4 * b0; // << 52
+    int partialLowest = lowest * operandLowest; // << 0
+    int partialLow = low * operandLowest; // << 13
+    int partialMiddle = middle * operandLowest; // << 26
+    int partialHigh = high * operandLowest; // << 39
+    int partialHighest = highest * operandLowest; // << 52
 
-    if (b1 != 0) {
-      p1 += a0 * b1;
-      p2 += a1 * b1;
-      p3 += a2 * b1;
-      p4 += a3 * b1;
+    if (operandLow != 0) {
+      partialLow += lowest * operandLow;
+      partialMiddle += low * operandLow;
+      partialHigh += middle * operandLow;
+      partialHighest += high * operandLow;
     }
-    if (b2 != 0) {
-      p2 += a0 * b2;
-      p3 += a1 * b2;
-      p4 += a2 * b2;
+    if (operandMiddle != 0) {
+      partialMiddle += lowest * operandMiddle;
+      partialHigh += low * operandMiddle;
+      partialHighest += middle * operandMiddle;
     }
-    if (b3 != 0) {
-      p3 += a0 * b3;
-      p4 += a1 * b3;
+    if (operandHigh != 0) {
+      partialHigh += lowest * operandHigh;
+      partialHighest += low * operandHigh;
     }
-    if (b4 != 0) {
-      p4 += a0 * b4;
+    if (operandHighest != 0) {
+      partialHighest += lowest * operandHighest;
     }
 
     // Accumulate into 22-bit chunks:
-    // .........................................c10|...................c00|
-    // |....................|..................xxxx|xxxxxxxxxxxxxxxxxxxxxx| p0
+    // ........................................cLPH|..................cLPL|
+    // |....................|..................xxxx|xxxxxxxxxxxxxxxxxxxxxx| partialLowest
     // |....................|......................|......................|
-    // |....................|...................c11|......c01.............|
-    // |....................|....xxxxxxxxxxxxxxxxxx|xxxxxxxxx.............| p1
+    // |....................|.................cMPML|.....cMPL.............|
+    // |....................|....xxxxxxxxxxxxxxxxxx|xxxxxxxxx.............| partialLow
     // |....................|......................|......................|
-    // |.................c22|...............c12....|......................|
-    // |..........xxxxxxxxxx|xxxxxxxxxxxxxxxxxx....|......................| p2
+    // |................cHPL|.............cMPMH....|......................|
+    // |..........xxxxxxxxxx|xxxxxxxxxxxxxxxxxx....|......................| partialMiddle
     // |....................|......................|......................|
-    // |.................c23|..c13.................|......................|
-    // |xxxxxxxxxxxxxxxxxxxx|xxxxx.................|......................| p3
+    // |................cHPM|.cMPH.................|......................|
+    // |xxxxxxxxxxxxxxxxxxxx|xxxxx.................|......................| partialHigh
     // |....................|......................|......................|
-    // |.........c24........|......................|......................|
-    // |xxxxxxxxxxxx........|......................|......................| p4
+    // |........CHPH........|......................|......................|
+    // |xxxxxxxxxxxx........|......................|......................| partialHighest
 
-    int c00 = p0 & 0x3fffff;
-    int c01 = (p1 & 0x1ff) << 13;
-    int c0 = c00 + c01;
+    int cLowPartialLow = partialLowest & 0x3fffff;
+    int cLowPartialHigh = (partialLow & 0x1ff) << 13;
+    int cLow = cLowPartialLow + cLowPartialHigh;
 
-    int c10 = p0 >> 22;
-    int c11 = p1 >> 9;
-    int c12 = (p2 & 0x3ffff) << 4;
-    int c13 = (p3 & 0x1f) << 17;
-    int c1 = c10 + c11 + c12 + c13;
+    int cMiddlePartialLowest = partialLowest >> 22;
+    int cMiddlePartialMiddleLow = partialLow >> 9;
+    int cMiddlePartialHigh = (partialMiddle & 0x3ffff) << 4;
+    int cMiddlePartialHighest = (partialHigh & 0x1f) << 17;
+    int cMiddle = cMiddlePartialLowest +
+        cMiddlePartialMiddleLow +
+        cMiddlePartialHigh +
+        cMiddlePartialHighest;
 
-    int c22 = p2 >> 18;
-    int c23 = p3 >> 5;
-    int c24 = (p4 & 0xfff) << 8;
-    int c2 = c22 + c23 + c24;
+    int cHighPartialLow = partialMiddle >> 18;
+    int cHighPartialMiddle = partialHigh >> 5;
+    int cHighPartialHigh = (partialHighest & 0xfff) << 8;
+    int cHigh = cHighPartialLow + cHighPartialMiddle + cHighPartialHigh;
 
     // Propagate high bits from c0 -> c1, c1 -> c2.
-    c1 += c0 >> _BITS;
-    c2 += c1 >> _BITS;
+    cMiddle += cLow >> _lowBitCount;
+    cHigh += cMiddle >> _lowBitCount;
 
-    return Int64._masked(c0, c1, c2);
+    return Int64._masked(cLow, cMiddle, cHigh);
   }
 
   @override
-  Int64 operator %(Object other) => _divide(this, other, _RETURN_MOD);
+  Int64 operator %(Object other) =>
+      _divide(this, other, _DivisionReturnType.modulo);
 
   @override
-  Int64 operator ~/(Object other) => _divide(this, other, _RETURN_DIV);
+  Int64 operator ~/(Object other) =>
+      _divide(this, other, _DivisionReturnType.quotient);
 
   @override
-  Int64 remainder(Object other) => _divide(this, other, _RETURN_REM);
+  Int64 remainder(Object other) =>
+      _divide(this, other, _DivisionReturnType.remainder);
 
   @override
   Int64 operator &(Object other) {
-    Int64 o = _promote(other);
-    int a0 = _l & o._l;
-    int a1 = _m & o._m;
-    int a2 = _h & o._h;
-    return Int64._masked(a0, a1, a2);
+    Int64 operand = _promote(other);
+    int low = _low & operand._low;
+    int middle = _middle & operand._middle;
+    int high = _high & operand._high;
+    return Int64._masked(low, middle, high);
   }
 
   @override
   Int64 operator |(Object other) {
-    Int64 o = _promote(other);
-    int a0 = _l | o._l;
-    int a1 = _m | o._m;
-    int a2 = _h | o._h;
-    return Int64._masked(a0, a1, a2);
+    Int64 operand = _promote(other);
+    int low = _low | operand._low;
+    int middle = _middle | operand._middle;
+    int high = _high | operand._high;
+    return Int64._masked(low, middle, high);
   }
 
   @override
   Int64 operator ^(Object other) {
-    Int64 o = _promote(other);
-    int a0 = _l ^ o._l;
-    int a1 = _m ^ o._m;
-    int a2 = _h ^ o._h;
-    return Int64._masked(a0, a1, a2);
+    Int64 operand = _promote(other);
+    int low = _low ^ operand._low;
+    int middle = _middle ^ operand._middle;
+    int high = _high ^ operand._high;
+    return Int64._masked(low, middle, high);
   }
 
   @override
   Int64 operator ~() {
-    return Int64._masked(~_l, ~_m, ~_h);
+    return Int64._masked(~_low, ~_middle, ~_high);
   }
 
   @override
-  Int64 operator <<(int n) {
-    if (n < 0) {
-      throw ArgumentError.value(n);
+  Int64 operator <<(int number) {
+    if (number < 0) {
+      throw ArgumentError.value(number);
     }
-    if (n >= 64) {
-      return ZERO;
+    if (number >= 64) {
+      return zero;
     }
 
-    int res0, res1, res2;
-    if (n < _BITS) {
-      res0 = _l << n;
-      res1 = (_m << n) | (_l >> (_BITS - n));
-      res2 = (_h << n) | (_m >> (_BITS - n));
-    } else if (n < _BITS01) {
-      res0 = 0;
-      res1 = _l << (n - _BITS);
-      res2 = (_m << (n - _BITS)) | (_l >> (_BITS01 - n));
+    int resultLow, resultMiddle, resultHigh;
+    if (number < _lowBitCount) {
+      resultLow = _low << number;
+      resultMiddle = (_middle << number) | (_low >> (_lowBitCount - number));
+      resultHigh = (_high << number) | (_middle >> (_lowBitCount - number));
+    } else if (number < _lowAndMiddleBitCount) {
+      resultLow = 0;
+      resultMiddle = _low << (number - _lowBitCount);
+      resultHigh = (_middle << (number - _lowBitCount)) |
+          (_low >> (_lowAndMiddleBitCount - number));
     } else {
-      res0 = 0;
-      res1 = 0;
-      res2 = _l << (n - _BITS01);
+      resultLow = 0;
+      resultMiddle = 0;
+      resultHigh = _low << (number - _lowAndMiddleBitCount);
     }
 
-    return Int64._masked(res0, res1, res2);
+    return Int64._masked(resultLow, resultMiddle, resultHigh);
   }
 
   @override
-  Int64 operator >>(int n) {
-    if (n < 0) {
-      throw ArgumentError.value(n);
+  Int64 operator >>(int number) {
+    if (number < 0) {
+      throw ArgumentError.value(number);
     }
-    if (n >= 64) {
-      return isNegative ? const Int64._bits(_MASK, _MASK, _MASK2) : ZERO;
+    if (number >= 64) {
+      return isNegative ? const Int64._bits(_mask, _mask, _maskHigh) : zero;
     }
 
-    int res0, res1, res2;
+    int resultLow, resultMiddle, resultHigh;
 
     // Sign extend h(a).
-    int a2 = _h;
-    bool negative = (a2 & _SIGN_BIT_MASK) != 0;
-    if (negative && _MASK > _MASK2) {
+    int aHigh = _high;
+    bool negative = (aHigh & _signBitMask) != 0;
+    if (negative && _mask > _maskHigh) {
       // Add extra one bits on the left so the sign gets shifted into the wider
       // lower words.
-      a2 += (_MASK - _MASK2);
+      aHigh += (_mask - _maskHigh);
     }
 
-    if (n < _BITS) {
-      res2 = _shiftRight(a2, n);
+    if (number < _lowBitCount) {
+      resultHigh = _shiftRight(aHigh, number);
       if (negative) {
-        res2 |= _MASK2 & ~(_MASK2 >> n);
+        resultHigh |= _maskHigh & ~(_maskHigh >> number);
       }
-      res1 = _shiftRight(_m, n) | (a2 << (_BITS - n));
-      res0 = _shiftRight(_l, n) | (_m << (_BITS - n));
-    } else if (n < _BITS01) {
-      res2 = negative ? _MASK2 : 0;
-      res1 = _shiftRight(a2, n - _BITS);
+      resultMiddle =
+          _shiftRight(_middle, number) | (aHigh << (_lowBitCount - number));
+      resultLow =
+          _shiftRight(_low, number) | (_middle << (_lowBitCount - number));
+    } else if (number < _lowAndMiddleBitCount) {
+      resultHigh = negative ? _maskHigh : 0;
+      resultMiddle = _shiftRight(aHigh, number - _lowBitCount);
       if (negative) {
-        res1 |= _MASK & ~(_MASK >> (n - _BITS));
+        resultMiddle |= _mask & ~(_mask >> (number - _lowBitCount));
       }
-      res0 = _shiftRight(_m, n - _BITS) | (a2 << (_BITS01 - n));
+      resultLow = _shiftRight(_middle, number - _lowBitCount) |
+          (aHigh << (_lowAndMiddleBitCount - number));
     } else {
-      res2 = negative ? _MASK2 : 0;
-      res1 = negative ? _MASK : 0;
-      res0 = _shiftRight(a2, n - _BITS01);
+      resultHigh = negative ? _maskHigh : 0;
+      resultMiddle = negative ? _mask : 0;
+      resultLow = _shiftRight(aHigh, number - _lowAndMiddleBitCount);
       if (negative) {
-        res0 |= _MASK & ~(_MASK >> (n - _BITS01));
+        resultLow |= _mask & ~(_mask >> (number - _lowAndMiddleBitCount));
       }
     }
 
-    return Int64._masked(res0, res1, res2);
+    return Int64._masked(resultLow, resultMiddle, resultHigh);
   }
 
   @override
-  Int64 shiftRightUnsigned(int n) {
-    if (n < 0) {
-      throw ArgumentError.value(n);
+  Int64 shiftRightUnsigned(int number) {
+    if (number < 0) {
+      throw ArgumentError.value(number);
     }
-    if (n >= 64) {
-      return ZERO;
+    if (number >= 64) {
+      return zero;
     }
 
-    int res0, res1, res2;
-    int a2 = _MASK2 & _h; // Ensure a2 is positive.
-    if (n < _BITS) {
-      res2 = a2 >> n;
-      res1 = (_m >> n) | (a2 << (_BITS - n));
-      res0 = (_l >> n) | (_m << (_BITS - n));
-    } else if (n < _BITS01) {
-      res2 = 0;
-      res1 = a2 >> (n - _BITS);
-      res0 = (_m >> (n - _BITS)) | (_h << (_BITS01 - n));
+    int resultLow, resultMiddle, resultHigh;
+    int aHigh = _maskHigh & _high; // Ensure aHigh is positive.
+    if (number < _lowBitCount) {
+      resultHigh = aHigh >> number;
+      resultMiddle = (_middle >> number) | (aHigh << (_lowBitCount - number));
+      resultLow = (_low >> number) | (_middle << (_lowBitCount - number));
+    } else if (number < _lowAndMiddleBitCount) {
+      resultHigh = 0;
+      resultMiddle = aHigh >> (number - _lowBitCount);
+      resultLow = (_middle >> (number - _lowBitCount)) |
+          (_high << (_lowAndMiddleBitCount - number));
     } else {
-      res2 = 0;
-      res1 = 0;
-      res0 = a2 >> (n - _BITS01);
+      resultHigh = 0;
+      resultMiddle = 0;
+      resultLow = aHigh >> (number - _lowAndMiddleBitCount);
     }
 
-    return Int64._masked(res0, res1, res2);
+    return Int64._masked(resultLow, resultMiddle, resultHigh);
   }
 
   /// Returns [:true:] if this [Int64] has the same numeric value as the
   /// given object.  The argument may be an [int] or an [IntX].
   @override
   bool operator ==(Object other) {
-    Int64? o;
+    Int64? operand;
     if (other is Int64) {
-      o = other;
+      operand = other;
     } else if (other is int) {
-      if (_h == 0 && _m == 0) return _l == other;
+      if (_high == 0 && _middle == 0) return _low == other;
       // Since we know one of [_h] or [_m] is non-zero, if [other] fits in the
       // low word then it can't be numerically equal.
-      if ((_MASK & other) == other) return false;
-      o = Int64(other);
+      if ((_mask & other) == other) return false;
+      operand = Int64(other);
     } else if (other is Int32) {
-      o = other.toInt64();
+      operand = other.toInt64();
     }
-    if (o != null) {
-      return _l == o._l && _m == o._m && _h == o._h;
+    if (operand != null) {
+      return _low == operand._low &&
+          _middle == operand._middle &&
+          _high == operand._high;
     }
     return false;
   }
@@ -465,25 +511,25 @@ class Int64 implements IntX {
   int compareTo(Object other) => _compareTo(other);
 
   int _compareTo(Object other) {
-    Int64 o = _promote(other);
-    int signa = _h >> (_BITS2 - 1);
-    int signb = o._h >> (_BITS2 - 1);
-    if (signa != signb) {
-      return signa == 0 ? 1 : -1;
+    Int64 operand = _promote(other);
+    int sign = _high >> (_highBitCount - 1);
+    int operandSign = operand._high >> (_highBitCount - 1);
+    if (sign != operandSign) {
+      return sign == 0 ? 1 : -1;
     }
-    if (_h > o._h) {
+    if (_high > operand._high) {
       return 1;
-    } else if (_h < o._h) {
+    } else if (_high < operand._high) {
       return -1;
     }
-    if (_m > o._m) {
+    if (_middle > operand._middle) {
       return 1;
-    } else if (_m < o._m) {
+    } else if (_middle < operand._middle) {
       return -1;
     }
-    if (_l > o._l) {
+    if (_low > operand._low) {
       return 1;
-    } else if (_l < o._l) {
+    } else if (_low < operand._low) {
       return -1;
     }
     return 0;
@@ -502,35 +548,36 @@ class Int64 implements IntX {
   bool operator >=(Object other) => _compareTo(other) >= 0;
 
   @override
-  bool get isEven => (_l & 0x1) == 0;
+  bool get isEven => (_low & 0x1) == 0;
 
   @override
-  bool get isMaxValue => (_h == _MASK2 >> 1) && _m == _MASK && _l == _MASK;
+  bool get isMaxValue =>
+      (_high == _maskHigh >> 1) && _middle == _mask && _low == _mask;
 
   @override
-  bool get isMinValue => _h == _SIGN_BIT_MASK && _m == 0 && _l == 0;
+  bool get isMinValue => _high == _signBitMask && _middle == 0 && _low == 0;
 
   @override
-  bool get isNegative => (_h & _SIGN_BIT_MASK) != 0;
+  bool get isNegative => (_high & _signBitMask) != 0;
 
   @override
-  bool get isOdd => (_l & 0x1) == 1;
+  bool get isOdd => (_low & 0x1) == 1;
 
   @override
-  bool get isZero => _h == 0 && _m == 0 && _l == 0;
+  bool get isZero => _high == 0 && _middle == 0 && _low == 0;
 
   @override
   int get bitLength {
     if (isZero) return 0;
-    int a0 = _l, a1 = _m, a2 = _h;
+    int low = _low, middle = _middle, high = _high;
     if (isNegative) {
-      a0 = _MASK & ~a0;
-      a1 = _MASK & ~a1;
-      a2 = _MASK2 & ~a2;
+      low = _mask & ~low;
+      middle = _mask & ~middle;
+      high = _maskHigh & ~high;
     }
-    if (a2 != 0) return _BITS01 + a2.bitLength;
-    if (a1 != 0) return _BITS + a1.bitLength;
-    return a0.bitLength;
+    if (high != 0) return _lowAndMiddleBitCount + high.bitLength;
+    if (middle != 0) return _lowBitCount + middle.bitLength;
+    return low.bitLength;
   }
 
   /// Returns a hash code based on all the bits of this [Int64].
@@ -538,8 +585,8 @@ class Int64 implements IntX {
   int get hashCode {
     // TODO(sra): Should we ensure that hashCode values match corresponding int?
     // i.e. should `new Int64(x).hashCode == x.hashCode`?
-    int bottom = ((_m & 0x3ff) << _BITS) | _l;
-    int top = (_h << 12) | ((_m >> 10) & 0xfff);
+    int bottom = ((_middle & 0x3ff) << _lowBitCount) | _low;
+    int top = (_high << 12) | ((_middle >> 10) & 0xfff);
     return bottom ^ top;
   }
 
@@ -561,16 +608,16 @@ class Int64 implements IntX {
   /// between 0 and 64.
   @override
   int numberOfLeadingZeros() {
-    int b2 = Int32._numberOfLeadingZeros(_h);
-    if (b2 == 32) {
-      int b1 = Int32._numberOfLeadingZeros(_m);
-      if (b1 == 32) {
-        return Int32._numberOfLeadingZeros(_l) + 32;
+    int high = Int32._numberOfLeadingZeros(_high);
+    if (high == 32) {
+      int middle = Int32._numberOfLeadingZeros(_middle);
+      if (middle == 32) {
+        return Int32._numberOfLeadingZeros(_low) + 32;
       } else {
-        return b1 + _BITS2 - (32 - _BITS);
+        return middle + _highBitCount - (32 - _lowBitCount);
       }
     } else {
-      return b2 - (32 - _BITS2);
+      return high - (32 - _highBitCount);
     }
   }
 
@@ -578,19 +625,19 @@ class Int64 implements IntX {
   /// between 0 and 64.
   @override
   int numberOfTrailingZeros() {
-    int zeros = Int32._numberOfTrailingZeros(_l);
+    int zeros = Int32._numberOfTrailingZeros(_low);
     if (zeros < 32) {
       return zeros;
     }
 
-    zeros = Int32._numberOfTrailingZeros(_m);
+    zeros = Int32._numberOfTrailingZeros(_middle);
     if (zeros < 32) {
-      return _BITS + zeros;
+      return _lowBitCount + zeros;
     }
 
-    zeros = Int32._numberOfTrailingZeros(_h);
+    zeros = Int32._numberOfTrailingZeros(_high);
     if (zeros < 32) {
-      return _BITS01 + zeros;
+      return _lowAndMiddleBitCount + zeros;
     }
     // All zeros
     return 64;
@@ -599,47 +646,48 @@ class Int64 implements IntX {
   @override
   Int64 toSigned(int width) {
     if (width < 1 || width > 64) throw RangeError.range(width, 1, 64);
-    if (width > _BITS01) {
-      return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
-    } else if (width > _BITS) {
-      int m = _m.toSigned(width - _BITS);
-      return m.isNegative
-          ? Int64._masked(_l, m, _MASK2)
-          : Int64._masked(_l, m, 0); // Masking for type inferrer.
+    if (width > _lowAndMiddleBitCount) {
+      return Int64._masked(
+          _low, _middle, _high.toSigned(width - _lowAndMiddleBitCount));
+    } else if (width > _lowBitCount) {
+      int middle = _middle.toSigned(width - _lowBitCount);
+      return middle.isNegative
+          ? Int64._masked(_low, middle, _maskHigh)
+          : Int64._masked(_low, middle, 0); // Masking for type inferrer.
     } else {
-      int l = _l.toSigned(width);
-      return l.isNegative
-          ? Int64._masked(l, _MASK, _MASK2)
-          : Int64._masked(l, 0, 0); // Masking for type inferrer.
+      int low = _low.toSigned(width);
+      return low.isNegative
+          ? Int64._masked(low, _mask, _maskHigh)
+          : Int64._masked(low, 0, 0); // Masking for type inferrer.
     }
   }
 
   @override
   Int64 toUnsigned(int width) {
     if (width < 0 || width > 64) throw RangeError.range(width, 0, 64);
-    if (width > _BITS01) {
-      int h = _h.toUnsigned(width - _BITS01);
-      return Int64._masked(_l, _m, h);
-    } else if (width > _BITS) {
-      int m = _m.toUnsigned(width - _BITS);
-      return Int64._masked(_l, m, 0);
+    if (width > _lowAndMiddleBitCount) {
+      int high = _high.toUnsigned(width - _lowAndMiddleBitCount);
+      return Int64._masked(_low, _middle, high);
+    } else if (width > _lowBitCount) {
+      int middle = _middle.toUnsigned(width - _lowBitCount);
+      return Int64._masked(_low, middle, 0);
     } else {
-      int l = _l.toUnsigned(width);
-      return Int64._masked(l, 0, 0);
+      int low = _low.toUnsigned(width);
+      return Int64._masked(low, 0, 0);
     }
   }
 
   @override
   List<int> toBytes() {
     var result = List<int>.filled(8, 0);
-    result[0] = _l & 0xff;
-    result[1] = (_l >> 8) & 0xff;
-    result[2] = ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f);
-    result[3] = (_m >> 2) & 0xff;
-    result[4] = (_m >> 10) & 0xff;
-    result[5] = ((_h << 4) & 0xf0) | ((_m >> 18) & 0xf);
-    result[6] = (_h >> 4) & 0xff;
-    result[7] = (_h >> 12) & 0xff;
+    result[0] = _low & 0xff;
+    result[1] = (_low >> 8) & 0xff;
+    result[2] = ((_middle << 6) & 0xfc) | ((_low >> 16) & 0x3f);
+    result[3] = (_middle >> 2) & 0xff;
+    result[4] = (_middle >> 10) & 0xff;
+    result[5] = ((_high << 4) & 0xf0) | ((_middle >> 18) & 0xf);
+    result[6] = (_high >> 4) & 0xff;
+    result[7] = (_high >> 12) & 0xff;
     return result;
   }
 
@@ -648,25 +696,25 @@ class Int64 implements IntX {
 
   @override
   int toInt() {
-    int l = _l;
-    int m = _m;
-    int h = _h;
+    int low = _low;
+    int middle = _middle;
+    int high = _high;
     // In the sum we add least significant to most significant so that in
     // JavaScript double arithmetic rounding occurs on only the last addition.
-    if ((_h & _SIGN_BIT_MASK) != 0) {
-      l = _MASK & ~_l;
-      m = _MASK & ~_m;
-      h = _MASK2 & ~_h;
-      return -((1 + l) + (4194304 * m) + (17592186044416 * h));
+    if ((_high & _signBitMask) != 0) {
+      low = _mask & ~_low;
+      middle = _mask & ~_middle;
+      high = _maskHigh & ~_high;
+      return -((1 + low) + (4194304 * middle) + (17592186044416 * high));
     } else {
-      return l + (4194304 * m) + (17592186044416 * h);
+      return low + (4194304 * middle) + (17592186044416 * high);
     }
   }
 
   /// Returns an [Int32] containing the low 32 bits of this [Int64].
   @override
   Int32 toInt32() {
-    return Int32(((_m & 0x3ff) << _BITS) | _l);
+    return Int32(((_middle & 0x3ff) << _lowBitCount) | _low);
   }
 
   /// Returns `this`.
@@ -681,25 +729,26 @@ class Int64 implements IntX {
   @override
   String toHexString() {
     if (isZero) return '0';
-    Int64 x = this;
-    String hexStr = '';
-    while (!x.isZero) {
-      int digit = x._l & 0xf;
-      hexStr = '${_hexDigit(digit)}$hexStr';
-      x = x.shiftRightUnsigned(4);
+    Int64 value = this;
+    String hexString = '';
+    while (!value.isZero) {
+      int digit = value._low & 0xf;
+      hexString = '${_hexDigit(digit)}$hexString';
+      value = value.shiftRightUnsigned(4);
     }
-    return hexStr;
+    return hexString;
   }
 
   /// Returns the digits of `this` when interpreted as an unsigned 64-bit value.
   @pragma('dart2js:noInline')
   String toStringUnsigned() {
-    return _toRadixStringUnsigned(10, _l, _m, _h, '');
+    return _toRadixStringUnsigned(10, _low, _middle, _high, '');
   }
 
   @pragma('dart2js:noInline')
   String toRadixStringUnsigned(int radix) {
-    return _toRadixStringUnsigned(Int32._validateRadix(radix), _l, _m, _h, '');
+    return _toRadixStringUnsigned(
+        Int32._validateRadix(radix), _low, _middle, _high, '');
   }
 
   @override
@@ -708,32 +757,32 @@ class Int64 implements IntX {
   }
 
   String _toRadixString(int radix) {
-    int d0 = _l;
-    int d1 = _m;
-    int d2 = _h;
+    int low = _low;
+    int middle = _middle;
+    int high = _high;
 
     String sign = '';
-    if ((d2 & _SIGN_BIT_MASK) != 0) {
+    if ((high & _signBitMask) != 0) {
       sign = '-';
 
       // Negate in-place.
-      d0 = 0 - d0;
-      int borrow = (d0 >> _BITS) & 1;
-      d0 &= _MASK;
-      d1 = 0 - d1 - borrow;
-      borrow = (d1 >> _BITS) & 1;
-      d1 &= _MASK;
-      d2 = 0 - d2 - borrow;
-      d2 &= _MASK2;
-      // d2, d1, d0 now are an unsigned 64 bit integer for MIN_VALUE and an
-      // unsigned 63 bit integer for other values.
+      low = 0 - low;
+      int borrow = (low >> _lowBitCount) & 1;
+      low &= _mask;
+      middle = 0 - middle - borrow;
+      borrow = (middle >> _lowBitCount) & 1;
+      middle &= _mask;
+      high = 0 - high - borrow;
+      high &= _maskHigh;
+      // high, middle, low now are an unsigned 64 bit integer for MIN_VALUE and
+      // an unsigned 63 bit integer for other values.
     }
-    return _toRadixStringUnsigned(radix, d0, d1, d2, sign);
+    return _toRadixStringUnsigned(radix, low, middle, high, sign);
   }
 
   static String _toRadixStringUnsigned(
-      int radix, int d0, int d1, int d2, String sign) {
-    if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
+      int radix, int lowest, int low, int middle, String sign) {
+    if (lowest == 0 && low == 0 && middle == 0) return '0';
 
     // Rearrange components into five components where all but the most
     // significant are 10 bits wide.
@@ -747,15 +796,15 @@ class Int64 implements IntX {
     //
     //     6  6         5         4         3         2         1
     //     3210987654321098765432109876543210987654321098765432109876543210
-    //     [--------d2--------][---------d1---------][---------d0---------]
+    //     [-------high-------][-------middle-------][---------low--------]
     //  -->
-    //     [----------d4----------][---d3---][---d2---][---d1---][---d0---]
+    //     [--------highest-------][--high--][-middle-][---low--][-lowest-]
 
-    int d4 = (d2 << 4) | (d1 >> 18);
-    int d3 = (d1 >> 8) & 0x3ff;
-    d2 = ((d1 << 2) | (d0 >> 20)) & 0x3ff;
-    d1 = (d0 >> 10) & 0x3ff;
-    d0 = d0 & 0x3ff;
+    int highest = (middle << 4) | (low >> 18);
+    int high = (low >> 8) & 0x3ff;
+    middle = ((low << 2) | (lowest >> 20)) & 0x3ff;
+    low = (lowest >> 10) & 0x3ff;
+    lowest = lowest & 0x3ff;
 
     int fatRadix = _fatRadixTable[radix];
 
@@ -767,44 +816,44 @@ class Int64 implements IntX {
     // need only two chunks, but radix values 17-19 and 33-36 generate only 15
     // or 16 bits per iteration, so sometimes the third chunk is needed.
 
-    String chunk1 = '', chunk2 = '', chunk3 = '';
+    String chunkHigh = '', chunkMiddle = '', chunkLow = '';
 
-    while (!(d4 == 0 && d3 == 0)) {
-      int q = d4 ~/ fatRadix;
-      int r = d4 - q * fatRadix;
-      d4 = q;
-      d3 += r << 10;
+    while (!(highest == 0 && high == 0)) {
+      int quotient = highest ~/ fatRadix;
+      int remainder = highest - quotient * fatRadix;
+      highest = quotient;
+      high += remainder << 10;
 
-      q = d3 ~/ fatRadix;
-      r = d3 - q * fatRadix;
-      d3 = q;
-      d2 += r << 10;
+      quotient = high ~/ fatRadix;
+      remainder = high - quotient * fatRadix;
+      high = quotient;
+      middle += remainder << 10;
 
-      q = d2 ~/ fatRadix;
-      r = d2 - q * fatRadix;
-      d2 = q;
-      d1 += r << 10;
+      quotient = middle ~/ fatRadix;
+      remainder = middle - quotient * fatRadix;
+      middle = quotient;
+      low += remainder << 10;
 
-      q = d1 ~/ fatRadix;
-      r = d1 - q * fatRadix;
-      d1 = q;
-      d0 += r << 10;
+      quotient = low ~/ fatRadix;
+      remainder = low - quotient * fatRadix;
+      low = quotient;
+      lowest += remainder << 10;
 
-      q = d0 ~/ fatRadix;
-      r = d0 - q * fatRadix;
-      d0 = q;
+      quotient = lowest ~/ fatRadix;
+      remainder = lowest - quotient * fatRadix;
+      lowest = quotient;
 
-      assert(chunk3 == '');
-      chunk3 = chunk2;
-      chunk2 = chunk1;
+      assert(chunkLow == '');
+      chunkLow = chunkMiddle;
+      chunkMiddle = chunkHigh;
       // Adding [fatRadix] Forces an extra digit which we discard to get a fixed
       // width.  E.g.  (1000000 + 123) -> "1000123" -> "000123".  An alternative
       // would be to pad to the left with zeroes.
-      chunk1 = (fatRadix + r).toRadixString(radix).substring(1);
+      chunkHigh = (fatRadix + remainder).toRadixString(radix).substring(1);
     }
-    int residue = (d2 << 20) + (d1 << 10) + d0;
+    int residue = (middle << 20) + (low << 10) + lowest;
     String leadingDigits = residue == 0 ? '' : residue.toRadixString(radix);
-    return '$sign$leadingDigits$chunk1$chunk2$chunk3';
+    return '$sign$leadingDigits$chunkHigh$chunkMiddle$chunkLow';
   }
 
   // Table of 'fat' radix values.  Each entry for index `i` is the largest power
@@ -869,31 +918,41 @@ class Int64 implements IntX {
   ];
 
   String toDebugString() {
-    return 'Int64[_l=$_l, _m=$_m, _h=$_h]';
+    return 'Int64[_l=$_low, _m=$_middle, _h=$_high]';
   }
 
-  static Int64 _masked(int a0, int a1, int a2) =>
-      Int64._bits(_MASK & a0, _MASK & a1, _MASK2 & a2);
+  static Int64 _masked(int low, int middle, int high) =>
+      Int64._bits(_mask & low, _mask & middle, _maskHigh & high);
 
-  static Int64 _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
-    int diff0 = a0 - b0;
-    int diff1 = a1 - b1 - ((diff0 >> _BITS) & 1);
-    int diff2 = a2 - b2 - ((diff1 >> _BITS) & 1);
-    return _masked(diff0, diff1, diff2);
+  static Int64 _subtract(
+      int firstMinuendLow,
+      int firstMinuendMiddle,
+      int firstMinuendHigh,
+      int secondMinuendLow,
+      int secondMinuendMiddle,
+      int secondMinuendHigh) {
+    int diffLow = firstMinuendLow - secondMinuendLow;
+    int diffMiddle = firstMinuendMiddle -
+        secondMinuendMiddle -
+        ((diffLow >> _lowBitCount) & 1);
+    int diffHigh = firstMinuendHigh -
+        secondMinuendHigh -
+        ((diffMiddle >> _lowBitCount) & 1);
+    return _masked(diffLow, diffMiddle, diffHigh);
   }
 
-  static Int64 _negate(int b0, int b1, int b2) {
-    return _sub(0, 0, 0, b0, b1, b2);
+  static Int64 _negate(int low, int middle, int high) {
+    return _subtract(0, 0, 0, low, middle, high);
   }
 
   String _hexDigit(int digit) => '0123456789ABCDEF'[digit];
 
   // Work around dart2js bugs with negative arguments to '>>' operator.
-  static int _shiftRight(int x, int n) {
-    if (x >= 0) {
-      return x >> n;
+  static int _shiftRight(int value, int bitShiftCount) {
+    if (value >= 0) {
+      return value >> bitShiftCount;
     } else {
-      int shifted = x >> n;
+      int shifted = value >> bitShiftCount;
       if (shifted >= 0x80000000) {
         shifted -= 4294967296;
       }
@@ -903,60 +962,54 @@ class Int64 implements IntX {
 
   // Implementation of '~/', '%' and 'remainder'.
 
-  static Int64 _divide(Int64 a, other, int what) {
+  static Int64 _divide(Int64 a, other, _DivisionReturnType returnType) {
     Int64 b = _promote(other);
     if (b.isZero) {
       throw const IntegerDivisionByZeroException();
     }
-    if (a.isZero) return ZERO;
+    if (a.isZero) return zero;
 
-    bool aNeg = a.isNegative;
-    bool bNeg = b.isNegative;
+    bool isANegative = a.isNegative;
+    bool isBNegative = b.isNegative;
+
     a = a.abs();
     b = b.abs();
 
-    int a0 = a._l;
-    int a1 = a._m;
-    int a2 = a._h;
-
-    int b0 = b._l;
-    int b1 = b._m;
-    int b2 = b._h;
-    return _divideHelper(a0, a1, a2, aNeg, b0, b1, b2, bNeg, what);
+    return _divideHelper(a._low, a._middle, a._high, isANegative, b._low,
+        b._middle, b._high, isBNegative, returnType);
   }
 
-  static const _RETURN_DIV = 1;
-  static const _RETURN_REM = 2;
-  static const _RETURN_MOD = 3;
-
   static Int64 _divideHelper(
-      // up to 64 bits unsigned in a2/a1/a0 and b2/b1/b0
-      int a0,
-      int a1,
-      int a2,
-      bool aNeg, // input A.
-      int b0,
-      int b1,
-      int b2,
-      bool bNeg, // input B.
-      int what) {
-    int q0 = 0, q1 = 0, q2 = 0; // result Q.
-    int r0 = 0, r1 = 0, r2 = 0; // result R.
+      // up to 64 bits unsigned in dividendHigh/dividendMiddle/dividendLow and
+      // divisorHigh/divisorMiddle/divisorLow
+      int dividendLow,
+      int dividendMiddle,
+      int dividendHigh,
+      bool isDividendNegative,
+      int divisorLow,
+      int divisorMiddle,
+      int divisorHigh,
+      bool isDivisorNegative, // input B.
+      _DivisionReturnType returnType) {
+    int quotientLow = 0, quotientMiddle = 0, quotientHigh = 0;
+    int remainderLow = 0, remainderMiddle = 0, remainderHigh = 0;
 
-    if (b2 == 0 && b1 == 0 && b0 < (1 << (30 - _BITS))) {
+    if (divisorHigh == 0 &&
+        divisorMiddle == 0 &&
+        divisorLow < (1 << (30 - _lowBitCount))) {
       // Small divisor can be handled by single-digit division within Smi range.
       //
       // Handling small divisors here helps the estimate version below by
       // handling cases where the estimate is off by more than a small amount.
 
-      q2 = a2 ~/ b0;
-      int carry = a2 - q2 * b0;
-      int d1 = a1 + (carry << _BITS);
-      q1 = d1 ~/ b0;
-      carry = d1 - q1 * b0;
-      int d0 = a0 + (carry << _BITS);
-      q0 = d0 ~/ b0;
-      r0 = d0 - q0 * b0;
+      quotientHigh = dividendHigh ~/ divisorLow;
+      int carry = dividendHigh - quotientHigh * divisorLow;
+      int smallDivisorMiddle = dividendMiddle + (carry << _lowBitCount);
+      quotientMiddle = smallDivisorMiddle ~/ divisorLow;
+      carry = smallDivisorMiddle - quotientMiddle * divisorLow;
+      int smallDivisorLow = dividendLow + (carry << _lowBitCount);
+      quotientLow = smallDivisorLow ~/ divisorLow;
+      remainderLow = smallDivisorLow - quotientLow * divisorLow;
     } else {
       // Approximate Q = A ~/ B and R = A - Q * B using doubles.
 
@@ -970,94 +1023,136 @@ class Int64 implements IntX {
       //   - Dividing by powers of two (adjusts exponent only).
       //   - Floor (zeroes bits with fractional weight).
 
-      const double K2 = 17592186044416.0; // 2^44
-      const double K1 = 4194304.0; // 2^22
+      const double highThreshold = 17592186044416.0; // 2^44
+      const double middleThreshold = 4194304.0; // 2^22
 
       // Approximate double values for [a] and [b].
-      double ad = a0 + K1 * a1 + K2 * a2;
-      double bd = b0 + K1 * b1 + K2 * b2;
+      double approximateA = dividendLow +
+          middleThreshold * dividendMiddle +
+          highThreshold * dividendHigh;
+      double approximateB = divisorLow +
+          middleThreshold * divisorMiddle +
+          highThreshold * divisorHigh;
       // Approximate quotient.
-      double qd = (ad / bd).floorToDouble();
+      double approximateQuotient =
+          (approximateA / approximateB).floorToDouble();
 
       // Extract components of [qd] using double arithmetic.
-      double q2d = (qd / K2).floorToDouble();
-      qd = qd - K2 * q2d;
-      double q1d = (qd / K1).floorToDouble();
-      double q0d = qd - K1 * q1d;
-      q2 = q2d.toInt();
-      q1 = q1d.toInt();
-      q0 = q0d.toInt();
+      double approximateQuotientHigh =
+          (approximateQuotient / highThreshold).floorToDouble();
+      approximateQuotient =
+          approximateQuotient - highThreshold * approximateQuotientHigh;
+      double approximateQuotientMiddle =
+          (approximateQuotient / middleThreshold).floorToDouble();
+      double approximateQuotientLow =
+          approximateQuotient - middleThreshold * approximateQuotientMiddle;
+      quotientHigh = approximateQuotientHigh.toInt();
+      quotientMiddle = approximateQuotientMiddle.toInt();
+      quotientLow = approximateQuotientLow.toInt();
 
-      assert(q0 + K1 * q1 + K2 * q2 == (ad / bd).floorToDouble());
-      assert(q2 == 0 || b2 == 0); // Q and B can't both be big since Q*B <= A.
+      assert(quotientLow +
+              middleThreshold * quotientMiddle +
+              highThreshold * quotientHigh ==
+          (approximateA / approximateB).floorToDouble());
+      assert(quotientHigh == 0 ||
+          divisorHigh == 0); // Q and B can't both be big since Q*B <= A.
 
       // P = Q * B, using doubles to hold intermediates.
       // We don't need all partial sums since Q*B <= A.
-      double p0d = q0d * b0;
-      double p0carry = (p0d / K1).floorToDouble();
-      p0d = p0d - p0carry * K1;
-      double p1d = q1d * b0 + q0d * b1 + p0carry;
-      double p1carry = (p1d / K1).floorToDouble();
-      p1d = p1d - p1carry * K1;
-      double p2d = q2d * b0 + q1d * b1 + q0d * b2 + p1carry;
-      assert(p2d <= _MASK2); // No partial sum overflow.
+      double approximatePartialLow = approximateQuotientLow * divisorLow;
+      double partialLowCarry =
+          (approximatePartialLow / middleThreshold).floorToDouble();
+      approximatePartialLow =
+          approximatePartialLow - partialLowCarry * middleThreshold;
+      double approximatePartialMiddle = approximateQuotientMiddle * divisorLow +
+          approximateQuotientLow * divisorMiddle +
+          partialLowCarry;
+      double partialMiddleCarry =
+          (approximatePartialMiddle / middleThreshold).floorToDouble();
+      approximatePartialMiddle =
+          approximatePartialMiddle - partialMiddleCarry * middleThreshold;
+      double partialHighDouble = approximateQuotientHigh * divisorLow +
+          approximateQuotientMiddle * divisorMiddle +
+          approximateQuotientLow * divisorHigh +
+          partialMiddleCarry;
+      assert(partialHighDouble <= _maskHigh); // No partial sum overflow.
 
       // R = A - P
-      int diff0 = a0 - p0d.toInt();
-      int diff1 = a1 - p1d.toInt() - ((diff0 >> _BITS) & 1);
-      int diff2 = a2 - p2d.toInt() - ((diff1 >> _BITS) & 1);
-      r0 = _MASK & diff0;
-      r1 = _MASK & diff1;
-      r2 = _MASK2 & diff2;
+      int diffLow = dividendLow - approximatePartialLow.toInt();
+      int diffMiddle = dividendMiddle -
+          approximatePartialMiddle.toInt() -
+          ((diffLow >> _lowBitCount) & 1);
+      int diffHigh = dividendHigh -
+          partialHighDouble.toInt() -
+          ((diffMiddle >> _lowBitCount) & 1);
+      remainderLow = _mask & diffLow;
+      remainderMiddle = _mask & diffMiddle;
+      remainderHigh = _maskHigh & diffHigh;
 
       // while (R < 0 || R >= B)
       //  adjust R towards [0, B)
-      while (r2 >= _SIGN_BIT_MASK ||
-          r2 > b2 ||
-          (r2 == b2 && (r1 > b1 || (r1 == b1 && r0 >= b0)))) {
+      while (remainderHigh >= _signBitMask ||
+          remainderHigh > divisorHigh ||
+          (remainderHigh == divisorHigh &&
+              (remainderMiddle > divisorMiddle ||
+                  (remainderMiddle == divisorMiddle &&
+                      remainderLow >= divisorLow)))) {
         // Direction multiplier for adjustment.
-        int m = (r2 & _SIGN_BIT_MASK) == 0 ? 1 : -1;
+        int middle = (remainderHigh & _signBitMask) == 0 ? 1 : -1;
         // R = R - B  or  R = R + B
-        int d0 = r0 - m * b0;
-        int d1 = r1 - m * (b1 + ((d0 >> _BITS) & 1));
-        int d2 = r2 - m * (b2 + ((d1 >> _BITS) & 1));
-        r0 = _MASK & d0;
-        r1 = _MASK & d1;
-        r2 = _MASK2 & d2;
+        int currentDivisorLow = remainderLow - middle * divisorLow;
+        int currentDivisorMiddle = remainderMiddle -
+            middle *
+                (divisorMiddle + ((currentDivisorLow >> _lowBitCount) & 1));
+        int currentDivisorHigh = remainderHigh -
+            middle *
+                (divisorHigh + ((currentDivisorMiddle >> _lowBitCount) & 1));
+        remainderLow = _mask & currentDivisorLow;
+        remainderMiddle = _mask & currentDivisorMiddle;
+        remainderHigh = _maskHigh & currentDivisorHigh;
 
         // Q = Q + 1  or  Q = Q - 1
-        d0 = q0 + m;
-        d1 = q1 + m * ((d0 >> _BITS) & 1);
-        d2 = q2 + m * ((d1 >> _BITS) & 1);
-        q0 = _MASK & d0;
-        q1 = _MASK & d1;
-        q2 = _MASK2 & d2;
+        currentDivisorLow = quotientLow + middle;
+        currentDivisorMiddle =
+            quotientMiddle + middle * ((currentDivisorLow >> _lowBitCount) & 1);
+        currentDivisorHigh = quotientHigh +
+            middle * ((currentDivisorMiddle >> _lowBitCount) & 1);
+        quotientLow = _mask & currentDivisorLow;
+        quotientMiddle = _mask & currentDivisorMiddle;
+        quotientHigh = _maskHigh & currentDivisorHigh;
       }
     }
 
     // 0 <= R < B
-    assert(Int64.ZERO <= Int64._bits(r0, r1, r2));
-    assert(r2 < b2 || // Handles case where B = -(MIN_VALUE)
-        Int64._bits(r0, r1, r2) < Int64._bits(b0, b1, b2));
+    assert(Int64.zero <=
+        Int64._bits(remainderLow, remainderMiddle, remainderHigh));
+    assert(remainderHigh < divisorHigh || // Handles case where B = -(MIN_VALUE)
+        Int64._bits(remainderLow, remainderMiddle, remainderHigh) <
+            Int64._bits(divisorLow, divisorMiddle, divisorHigh));
 
-    assert(what == _RETURN_DIV || what == _RETURN_MOD || what == _RETURN_REM);
-    if (what == _RETURN_DIV) {
-      if (aNeg != bNeg) return _negate(q0, q1, q2);
-      return Int64._masked(q0, q1, q2); // Masking for type inferrer.
+    if (returnType != _DivisionReturnType.quotient && !isDividendNegative) {
+      return Int64._masked(remainderLow, remainderMiddle,
+          remainderHigh); // Masking for type inferrer.
     }
 
-    if (!aNeg) {
-      return Int64._masked(r0, r1, r2); // Masking for type inferrer.
-    }
-
-    if (what == _RETURN_MOD) {
-      if (r0 == 0 && r1 == 0 && r2 == 0) {
-        return ZERO;
-      } else {
-        return _sub(b0, b1, b2, r0, r1, r2);
-      }
-    } else {
-      return _negate(r0, r1, r2);
+    switch (returnType) {
+      case _DivisionReturnType.quotient:
+        if (isDividendNegative != isDivisorNegative) {
+          return _negate(quotientLow, quotientMiddle, quotientHigh);
+        }
+        return Int64._masked(quotientLow, quotientMiddle,
+            quotientHigh); // Masking for type inferrer.
+      case _DivisionReturnType.modulo:
+        if (remainderLow == 0 && remainderMiddle == 0 && remainderHigh == 0) {
+          return zero;
+        } else {
+          return _subtract(divisorLow, divisorMiddle, divisorHigh, remainderLow,
+              remainderMiddle, remainderHigh);
+        }
+      case _DivisionReturnType.remainder:
+        return _negate(remainderLow, remainderMiddle, remainderHigh);
     }
   }
 }
+
+enum _DivisionReturnType { quotient, remainder, modulo }
