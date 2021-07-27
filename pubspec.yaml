@@ -2,7 +2,6 @@ name: fixnum
 version: 0.10.12-dev
 
 description: Library for 32- and 64-bit signed fixed-width integers.
-author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/fixnum
 
 environment:
