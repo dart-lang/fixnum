@@ -662,7 +662,7 @@ class Int64 implements IntX {
 
   /// Returns an [Int32] containing the low 32 bits of this [Int64].
   @override
-  Int32 toInt32() => Int32(((_m & 0x3ff) << _BITS) | _l);
+  Int32 toInt32() => Int32(toInt());
 
   /// Returns `this`.
   @override

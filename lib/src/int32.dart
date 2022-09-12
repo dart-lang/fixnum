@@ -9,13 +9,19 @@ part of fixnum;
 /// An immutable 32-bit signed integer, in the range [-2^31, 2^31 - 1].
 /// Arithmetic operations may overflow in order to maintain this range.
 class Int32 implements IntX {
+  /// The maximum positive value
+  static const int MAX_INTEGER = 0x7FFFFFFF;
+
+  /// The minimum negative value
+  static const int MIN_INTEGER = -0x80000000;
+
   /// The maximum positive value attainable by an [Int32], namely
   /// 2147483647.
-  static const Int32 MAX_VALUE = Int32._internal(0x7FFFFFFF);
+  static const Int32 MAX_VALUE = Int32._internal(MAX_INTEGER);
 
-  /// The minimum positive value attainable by an [Int32], namely
+  /// The minimum negative value attainable by an [Int32], namely
   /// -2147483648.
-  static const Int32 MIN_VALUE = Int32._internal(-0x80000000);
+  static const Int32 MIN_VALUE = Int32._internal(MIN_INTEGER);
 
   /// An [Int32] constant equal to 0.
   static const Int32 ZERO = Int32._internal(0);
@@ -120,7 +126,13 @@ class Int32 implements IntX {
 
   /// Constructs an [Int32] from an [int].  Only the low 32 bits of the input
   /// are used.
-  Int32([int i = 0]) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+  // Int32([int i = 0]) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+
+  Int32([int i = 0]) : _i = i {
+    if (i < MIN_INTEGER || MAX_INTEGER < i) {
+      throw OverflowException(type: Int32, min: "-2^31", max: "2^31 - 1");
+    }
+  }
 
   // Returns the [int] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
@@ -172,7 +184,8 @@ class Int32 implements IntX {
       return toInt64() * other;
     }
     // TODO(rice) - optimize
-    return (toInt64() * other).toInt32();
+    // Through constructor to check value range.
+    return Int32((toInt64() * other).toInt());
   }
 
   @override

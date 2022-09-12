@@ -11,3 +11,4 @@ library fixnum;
 part 'src/intx.dart';
 part 'src/int32.dart';
 part 'src/int64.dart';
+part 'src/exception.dart';
