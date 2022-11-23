@@ -131,7 +131,7 @@ class Int64 implements IntX {
 
     if (negative) return _negate(d0, d1, d2);
 
-    return Int64._bits(d0, d1, d2);
+    return Int64._masked(d0, d1, d2);
   }
 
   /// Parses [source] as a decimal numeral.
@@ -750,34 +750,17 @@ class Int64 implements IntX {
   @override
   String toString() => _toRadixString(10);
 
-  /// Reusable buffer used by [toHexString].
-  static Uint8List? _buffer;
-
   @override
   String toHexString() {
     if (isZero) return '0';
-    const hexDigits = '0123456789ABCDEF';
-
-    var buffer = _buffer ??= Uint8List(16);
-    var bits = _h;
-    var index = 0;
-    void writeBits(int count) {
-      while (count >= 4) {
-        count -= 4;
-        var char = (bits >> count) & 0xF;
-        if (index > 0 || char != 0) {
-          // Avoid leading zeros.
-          buffer[index++] = hexDigits.codeUnitAt(char);
-        }
-      }
+    Int64 x = this;
+    String hexStr = '';
+    while (!x.isZero) {
+      int digit = x._l & 0xf;
+      hexStr = '${_hexDigit(digit)}$hexStr';
+      x = x.shiftRightUnsigned(4);
     }
-
-    writeBits(20);
-    bits = _m;
-    writeBits(22);
-    bits = (bits << 22) | _l;
-    writeBits(24);
-    return String.fromCharCodes(Uint8List.sublistView(buffer, 0, index));
+    return hexStr;
   }
 
   /// Returns the digits of `this` when interpreted as an unsigned 64-bit value.
@@ -966,6 +949,8 @@ class Int64 implements IntX {
   }
 
   static Int64 _negate(int b0, int b1, int b2) => _sub(0, 0, 0, b0, b1, b2);
+
+  String _hexDigit(int digit) => '0123456789ABCDEF'[digit];
 
   // Work around dart2js bugs with negative arguments to '>>' operator.
   static int _shiftRight(int x, int n) {
