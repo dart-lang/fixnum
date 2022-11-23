@@ -70,3 +70,18 @@ int bitCount(int i) {
   i += i >> 16;
   return i & 0x0000003F;
 }
+
+bool isPowerOf2(int value) => value != 0 && (value & (value - 1)) == 0;
+
+const String radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+void reverseList(List<Object?> values) {
+  var half = values.length ~/ 2;
+  var last = values.length - 1;
+  for (var i = 0; i < half; i++) {
+    var tmp = values[i];
+    var fromEnd = last - i;
+    values[i] = values[fromEnd];
+    values[fromEnd] = tmp;
+  }
+}
