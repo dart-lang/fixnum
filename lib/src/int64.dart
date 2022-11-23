@@ -131,7 +131,7 @@ class Int64 implements IntX {
 
     if (negative) return _negate(d0, d1, d2);
 
-    return Int64._masked(d0, d1, d2);
+    return Int64._bits(d0, d1, d2);
   }
 
   /// Parses [source] as a decimal numeral.
