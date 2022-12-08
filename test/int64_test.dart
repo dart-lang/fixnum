@@ -398,7 +398,8 @@ void main() {
       expect(Int64(10), isNot(equals(9)));
       expect(Int64(-10), equals(Int64(-10)));
       expect(Int64(-10) != Int64(-10), false);
-      expect(Int64(-10) == -10, isTrue); // ignore: unrelated_type_equality_checks
+      expect(
+          Int64(-10) == -10, isTrue); // ignore: unrelated_type_equality_checks
       expect(Int64(-10), isNot(equals(-9)));
       expect(largePos, equals(largePos));
       expect(largePos, isNot(equals(largePosPlusOne)));
