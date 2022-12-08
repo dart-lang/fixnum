@@ -95,9 +95,7 @@ void main() {
       expect(Int32(829893893) ~/ Int64(1919), Int32(432461));
       expect(Int32(0x12345678) ~/ Int64(0x22), Int32(0x12345678 ~/ 0x22));
       expect(Int32(829893893) ~/ 1919, Int32(432461));
-      expect(
-          () => Int32(17) ~/ Int32.ZERO,
-          throwsA(isUnsupportedError));
+      expect(() => Int32(17) ~/ Int32.ZERO, throwsA(isUnsupportedError));
     });
 
     test('%', () {
