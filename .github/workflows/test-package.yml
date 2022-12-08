@@ -47,8 +47,8 @@ jobs:
       matrix:
         # Add macos-latest and/or windows-latest if relevant for this package.
         os: [ubuntu-latest]
-        # TODO(devoncarew): Add `2.19.0` to this once that release is stable
-        sdk: [dev]
+        # TODO(devoncarew): Change back to `[2.19.0, dev]` once 2.19 is stable
+        sdk: [2.19.0-450.0.dev]
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
