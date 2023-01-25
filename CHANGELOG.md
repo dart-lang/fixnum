@@ -1,4 +1,4 @@
-## 1.1.0-dev
+## 1.1.0
 
 * Add `tryParseRadix`, `tryParseInt` and `tryParseHex` static methods
   to both `Int32` and `Int64`.
