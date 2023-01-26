@@ -7,6 +7,7 @@
 * Make `Int32` parse functions consistent with documentation (accept
   leading minus sign, do not accept empty inputs).
 * Update the minimum SDK constraint to 2.19.
+* Update to package:lints 2.0.0.
 
 ## 1.0.1
 
