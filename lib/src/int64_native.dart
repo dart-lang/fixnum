@@ -285,16 +285,7 @@ class Int64 implements IntX {
   /// Returns the number of leading zeros in this [Int64] as an [int]
   /// between 0 and 64.
   @override
-  int numberOfLeadingZeros() {
-    final high = _i >>> 32;
-    final highLeadingZeroes = u.numberOfLeadingZeros(high);
-    if (highLeadingZeroes == 32) {
-      final low = _i & 0xFFFFFFFF;
-      final lowLeadingZeroes = u.numberOfLeadingZeros(low);
-      return 32 + lowLeadingZeroes;
-    }
-    return highLeadingZeroes;
-  }
+  int numberOfLeadingZeros() => _i < 0 ? 0 : (64 - _i.bitLength);
 
   /// Returns the number of trailing zeros in this [Int64] as an [int] between
   /// 0 and 64.
