@@ -5,50 +5,42 @@
 // ignore_for_file: constant_identifier_names
 
 import 'int32.dart';
+import 'int64.dart';
 import 'intx.dart';
 import 'utilities.dart' as u;
 
 /// An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
 /// Arithmetic operations may overflow in order to maintain this range.
-class Int64 implements IntX {
+class Int64Impl implements Int64 {
   final int _i;
 
-  /// The maximum positive value attainable by an [Int64], namely
-  /// 9,223,372,036,854,775,807.
-  static const Int64 MAX_VALUE = Int64(9223372036854775807);
+  static const Int64Impl MAX_VALUE = Int64Impl(9223372036854775807);
 
-  /// The minimum positive value attainable by an [Int64], namely
-  /// -9,223,372,036,854,775,808.
-  static const Int64 MIN_VALUE = Int64(-9223372036854775808);
+  static const Int64Impl MIN_VALUE = Int64Impl(-9223372036854775808);
 
-  /// An [Int64] constant equal to 0.
-  static const Int64 ZERO = Int64(0);
+  static const Int64Impl ZERO = Int64Impl(0);
 
-  /// An [Int64] constant equal to 1.
-  static const Int64 ONE = Int64(1);
+  static const Int64Impl ONE = Int64Impl(1);
 
-  /// An [Int64] constant equal to 2.
-  static const Int64 TWO = Int64(2);
+  static const Int64Impl TWO = Int64Impl(2);
 
-  /// Constructs an [Int64] with a given [int] value; zero by default.
-  const Int64([int value = 0]) : _i = value;
+  const Int64Impl([int value = 0]) : _i = value;
 
-  /// Constructs an [Int64] from a pair of 32-bit integers having the value
-  /// [:((top & 0xffffffff) << 32) | (bottom & 0xffffffff):].
-  factory Int64.fromInts(int top, int bottom) =>
-      Int64((top << 32) | (bottom & 0xFFFFFFFF));
+  factory Int64Impl.fromInts(int top, int bottom) =>
+      Int64Impl((top << 32) | (bottom & 0xFFFFFFFF));
 
-  factory Int64.fromBytes(List<int> bytes) => Int64(((bytes[7] & 0xFF) << 56) |
-      ((bytes[6] & 0xFF) << 48) |
-      ((bytes[5] & 0xFF) << 40) |
-      ((bytes[4] & 0xFF) << 32) |
-      ((bytes[3] & 0xFF) << 24) |
-      ((bytes[2] & 0xFF) << 16) |
-      ((bytes[1] & 0xFF) << 8) |
-      (bytes[0] & 0xFF));
+  factory Int64Impl.fromBytes(List<int> bytes) =>
+      Int64Impl(((bytes[7] & 0xFF) << 56) |
+          ((bytes[6] & 0xFF) << 48) |
+          ((bytes[5] & 0xFF) << 40) |
+          ((bytes[4] & 0xFF) << 32) |
+          ((bytes[3] & 0xFF) << 24) |
+          ((bytes[2] & 0xFF) << 16) |
+          ((bytes[1] & 0xFF) << 8) |
+          (bytes[0] & 0xFF));
 
-  factory Int64.fromBytesBigEndian(List<int> bytes) =>
-      Int64(((bytes[0] & 0xFF) << 56) |
+  factory Int64Impl.fromBytesBigEndian(List<int> bytes) =>
+      Int64Impl(((bytes[0] & 0xFF) << 56) |
           ((bytes[1] & 0xFF) << 48) |
           ((bytes[2] & 0xFF) << 40) |
           ((bytes[3] & 0xFF) << 32) |
@@ -57,95 +49,7 @@ class Int64 implements IntX {
           ((bytes[6] & 0xFF) << 8) |
           (bytes[7] & 0xFF));
 
-  /// Parses [source] as a decimal numeral.
-  ///
-  /// Returns an [Int64] with the numerical value of [source]. If the numerical
-  /// value of [source] does not fit in a signed 64 bit integer, the numerical
-  /// value is truncated to the lowest 64 bits of the value's binary
-  /// representation, interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of digits (`0`-`9`), possibly
-  /// prefixed by a `-` sign.
-  ///
-  /// Throws a [FormatException] if the input is not a valid decimal integer
-  /// numeral.
-  static Int64 parseInt(String source) => _parseRadix(source, 10, true)!;
-
-  /// Parses [source] as a decimal numeral.
-  ///
-  /// Returns an [Int64] with the numerical value of [source]. If the numerical
-  /// value of [source] does not fit in a signed 64 bit integer, the numerical
-  /// value is truncated to the lowest 64 bits of the value's binary
-  /// representation, interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of digits (`0`-`9`), possibly
-  /// prefixed by a `-` sign.
-  ///
-  /// Returns `null` if the input is not a valid decimal integer numeral.
-  static Int64? tryParseInt(String source) => _parseRadix(source, 10, false);
-
-  /// Parses [source] in a given [radix] between 2 and 36.
-  ///
-  /// Returns an [Int64] with the numerical value of [source]. If the numerical
-  /// value of [source] does not fit in a signed 64 bit integer, the numerical
-  /// value is truncated to the lowest 64 bits of the value's binary
-  /// representation, interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of base-[radix] digits (using
-  /// letters from `a` to `z` as digits with values 10 through 25 for radixes
-  /// above 10), possibly prefixed by a `-` sign.
-  ///
-  /// Throws a [FormatException] if the input is not recognized as a valid
-  /// integer numeral.
-  static Int64 parseRadix(String source, int radix) =>
-      _parseRadix(source, u.validateRadix(radix), true)!;
-
-  /// Parses [source] in a given [radix] between 2 and 36.
-  ///
-  /// Returns an [Int64] with the numerical value of [source]. If the numerical
-  /// value of [source] does not fit in a signed 64 bit integer, the numerical
-  /// value is truncated to the lowest 64 bits of the value's binary
-  /// representation, interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of base-[radix] digits (using
-  /// letters from `a` to `z` as digits with values 10 through 25 for radixes
-  /// above 10), possibly prefixed by a `-` sign.
-  ///
-  /// Returns `null` if the input is not recognized as a valid integer numeral.
-  static Int64? tryParseRadix(String source, int radix) =>
-      _parseRadix(source, u.validateRadix(radix), false);
-
-  /// Parses [source] as a hexadecimal numeral.
-  ///
-  /// Returns an [Int64] with the numerical value of [source]. If the numerical
-  /// value of [source] does not fit in a signed 64 bit integer, the numerical
-  /// value is truncated to the lowest 64 bits of the value's binary
-  /// representation, interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of hexadecimal digits
-  /// (`0`-`9`, `a`-`f` or `A`-`F`), possibly prefixed by a `-` sign.
-  ///
-  /// Throws a [FormatException] if the input is not a valid hexadecimal
-  /// integer numeral.
-  static Int64 parseHex(String source) => _parseRadix(source, 16, true)!;
-
-  /// Parses [source] as a hexadecimal numeral.
-  ///
-  /// Returns an [Int64] with the numerical value of [source].
-  /// If the numerical value of [source] does not fit
-  /// in a signed 64 bit integer,
-  /// the numerical value is truncated to the lowest 64 bits
-  /// of the value's binary representation,
-  /// interpreted as a 64-bit two's complement integer.
-  ///
-  /// The [source] string must contain a sequence of hexadecimal
-  /// digits (`0`-`9`, `a`-`f` or `A`-`F`), possibly prefixed by a `-` sign.
-  ///
-  /// Returns `null` if the input is not a valid
-  /// hexadecimal integer numeral.
-  static Int64? tryParseHex(String source) => _parseRadix(source, 16, false);
-
-  static Int64? _parseRadix(String s, int radix, bool throwOnError) {
+  static Int64Impl? parseRadix(String s, int radix, bool throwOnError) {
     int charIdx = 0;
     bool negative = false;
     if (s.startsWith('-')) {
@@ -171,14 +75,14 @@ class Int64 implements IntX {
     }
 
     if (negative) {
-      return Int64(-i);
+      return Int64Impl(-i);
     }
 
-    return Int64(i);
+    return Int64Impl(i);
   }
 
   static int _promote(Object value) {
-    if (value is Int64) {
+    if (value is Int64Impl) {
       return value._i;
     } else if (value is int) {
       return value;
@@ -189,46 +93,47 @@ class Int64 implements IntX {
   }
 
   @override
-  Int64 operator +(Object other) => Int64(_i + _promote(other));
+  Int64Impl operator +(Object other) => Int64Impl(_i + _promote(other));
 
   @override
-  Int64 operator -(Object other) => Int64(_i - _promote(other));
+  Int64Impl operator -(Object other) => Int64Impl(_i - _promote(other));
 
   @override
-  Int64 operator -() => Int64(-_i);
+  Int64Impl operator -() => Int64Impl(-_i);
 
   @override
-  Int64 operator *(Object other) => Int64(_i * _promote(other));
+  Int64Impl operator *(Object other) => Int64Impl(_i * _promote(other));
 
   @override
-  Int64 operator %(Object other) => Int64(_i % _promote(other));
+  Int64Impl operator %(Object other) => Int64Impl(_i % _promote(other));
 
   @override
-  Int64 operator ~/(Object other) => Int64(_i ~/ _promote(other));
+  Int64Impl operator ~/(Object other) => Int64Impl(_i ~/ _promote(other));
 
   @override
-  Int64 remainder(Object other) => Int64(_i.remainder(_promote(other)));
+  Int64Impl remainder(Object other) => Int64Impl(_i.remainder(_promote(other)));
 
   @override
-  Int64 operator &(Object other) => Int64(_i & _promote(other));
+  Int64Impl operator &(Object other) => Int64Impl(_i & _promote(other));
 
   @override
-  Int64 operator |(Object other) => Int64(_i | _promote(other));
+  Int64Impl operator |(Object other) => Int64Impl(_i | _promote(other));
 
   @override
-  Int64 operator ^(Object other) => Int64(_i ^ _promote(other));
+  Int64Impl operator ^(Object other) => Int64Impl(_i ^ _promote(other));
 
   @override
-  Int64 operator ~() => Int64(~_i);
+  Int64Impl operator ~() => Int64Impl(~_i);
 
   @override
-  Int64 operator <<(int shiftAmount) => Int64(_i << shiftAmount);
+  Int64Impl operator <<(int shiftAmount) => Int64Impl(_i << shiftAmount);
 
   @override
-  Int64 operator >>(int shiftAmount) => Int64(_i >> shiftAmount);
+  Int64Impl operator >>(int shiftAmount) => Int64Impl(_i >> shiftAmount);
 
   @override
-  Int64 shiftRightUnsigned(int shiftAmount) => Int64(_i >>> shiftAmount);
+  Int64Impl shiftRightUnsigned(int shiftAmount) =>
+      Int64Impl(_i >>> shiftAmount);
 
   @override
   int compareTo(Object other) => _i.compareTo(_promote(other));
@@ -282,13 +187,9 @@ class Int64 implements IntX {
   Int64 clamp(Object lowerLimit, Object upperLimit) =>
       Int64(_i.clamp(_promote(lowerLimit), _promote(upperLimit)));
 
-  /// Returns the number of leading zeros in this [Int64] as an [int]
-  /// between 0 and 64.
   @override
   int numberOfLeadingZeros() => _i < 0 ? 0 : (64 - _i.bitLength);
 
-  /// Returns the number of trailing zeros in this [Int64] as an [int] between
-  /// 0 and 64.
   @override
   int numberOfTrailingZeros() {
     if (_i == 0) return 64;
@@ -333,7 +234,6 @@ class Int64 implements IntX {
   @override
   int toInt() => _i;
 
-  /// Returns an [Int32] containing the low 32 bits of this [Int64].
   @override
   Int32 toInt32() => Int32(_i);
 
@@ -341,7 +241,6 @@ class Int64 implements IntX {
   @override
   Int64 toInt64() => this;
 
-  /// Returns the value of this [Int64] as a decimal [String].
   @override
   String toString() => _i.toString();
 
@@ -351,9 +250,10 @@ class Int64 implements IntX {
   @override
   String toRadixString(int radix) => _i.toRadixString(radix);
 
+  @override
   String toRadixStringUnsigned(int radix) => _toRadixStringUnsigned(_i, radix);
 
-  /// Returns the digits of `this` when interpreted as an unsigned 64-bit value.
+  @override
   String toStringUnsigned() => _toRadixStringUnsigned(_i, 10);
 
   static String _toRadixStringUnsigned(int value, int radix) =>
