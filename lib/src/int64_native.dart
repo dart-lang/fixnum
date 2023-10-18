@@ -9,8 +9,6 @@ import 'int64.dart';
 import 'intx.dart';
 import 'utilities.dart' as u;
 
-/// An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
-/// Arithmetic operations may overflow in order to maintain this range.
 class Int64Impl implements Int64 {
   final int _i;
 
@@ -171,12 +169,9 @@ class Int64Impl implements Int64 {
   @override
   int get bitLength => _i.bitLength;
 
-  /// Returns a hash code based on all the bits of this [Int64].
   @override
   int get hashCode => _i.hashCode;
 
-  /// Returns [:true:] if this [Int64] has the same numeric value as the given
-  /// object.  The argument may be an [int] or an [IntX].
   @override
   bool operator ==(Object other) => _i == _promote(other);
 
@@ -237,7 +232,6 @@ class Int64Impl implements Int64 {
   @override
   Int32 toInt32() => Int32(_i);
 
-  /// Returns `this`.
   @override
   Int64 toInt64() => this;
 

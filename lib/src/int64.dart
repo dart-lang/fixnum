@@ -186,4 +186,13 @@ abstract class Int64 implements IntX {
 
   @override
   Int64 toSigned(int width);
+
+  /// Returns whether this [Int64] has the same numeric value as the given
+  /// object. The argument may be an [int] or an [IntX].
+  @override
+  bool operator ==(Object other);
+
+  /// Returns a hash code based on the numeric value.
+  @override
+  int get hashCode;
 }

@@ -92,7 +92,6 @@ class Int64Impl implements Int64 {
     return Int64Impl._masked(d0, d1, d2);
   }
 
-  /// Constructs an [Int64Impl] with a given [int] value; zero by default.
   factory Int64Impl([int value = 0]) {
     int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
@@ -142,8 +141,6 @@ class Int64Impl implements Int64 {
     return Int64Impl._masked(low, middle, high);
   }
 
-  /// Constructs an [Int64Impl] from a pair of 32-bit integers having the value
-  /// [:((top & 0xffffffff) << 32) | (bottom & 0xffffffff):].
   factory Int64Impl.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
@@ -406,8 +403,6 @@ class Int64Impl implements Int64 {
     return Int64Impl._masked(res0, res1, res2);
   }
 
-  /// Returns [:true:] if this [Int64Impl] has the same numeric value as the
-  /// given object.  The argument may be an [int] or an [IntX].
   @override
   bool operator ==(Object other) {
     Int64Impl? o;
@@ -500,7 +495,6 @@ class Int64Impl implements Int64 {
     return a0.bitLength;
   }
 
-  /// Returns a hash code based on all the bits of this [Int64Impl].
   @override
   int get hashCode {
     // TODO(sra): Should we ensure that hashCode values match corresponding int?
@@ -522,8 +516,6 @@ class Int64Impl implements Int64 {
     return this;
   }
 
-  /// Returns the number of leading zeros in this [Int64Impl] as an [int]
-  /// between 0 and 64.
   @override
   int numberOfLeadingZeros() {
     int b2 = u.numberOfLeadingZeros(_h);
@@ -539,8 +531,6 @@ class Int64Impl implements Int64 {
     }
   }
 
-  /// Returns the number of trailing zeros in this [Int64Impl] as an [int]
-  /// between 0 and 64.
   @override
   int numberOfTrailingZeros() {
     int zeros = u.numberOfTrailingZeros(_l);
