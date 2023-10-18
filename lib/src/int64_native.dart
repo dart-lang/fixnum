@@ -291,14 +291,10 @@ class Int64 implements IntX {
   /// 0 and 64.
   @override
   int numberOfTrailingZeros() {
-    final low = _i & 0xFFFFFFFF;
-    final lowTrailingZeros = u.numberOfTrailingZeros(low);
-    if (lowTrailingZeros == 32) {
-      final high = _i >>> 32;
-      final highTrailingZeros = u.numberOfTrailingZeros(high);
-      return 32 + highTrailingZeros;
-    }
-    return lowTrailingZeros;
+    if (_i == 0) return 64;
+    var lsb = _i & (_i ^ (_i - 1));
+    if (lsb < 0) return 63;
+    return lsb.bitLength - 1;
   }
 
   @override
