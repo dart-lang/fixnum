@@ -6,7 +6,6 @@
 
 import 'int32.dart';
 import 'int64.dart';
-import 'intx.dart';
 import 'utilities.dart' as u;
 
 class Int64Impl implements Int64 {
