@@ -4,16 +4,14 @@
 
 // ignore_for_file: constant_identifier_names
 
-// Many locals are declared as `int` or `double`. We keep local variable types
-// because the types are critical to the efficiency of many operations.
-//
-// ignore_for_file: omit_local_variable_types
+// Conditional import in `int64.dart` confuses analyzer.
+// ignore_for_file: invalid_override
 
 import 'int32.dart';
-import 'int64.dart';
+import 'intx.dart';
 import 'utilities.dart' as u;
 
-class Int64Impl implements Int64 {
+class Int64 implements IntX {
   // A 64-bit integer is represented internally as three non-negative
   // integers, storing the 22 low, 22 middle, and 20 high bits of the
   // 64-bit value.  _l (low) and _m (middle) are in the range
@@ -36,21 +34,35 @@ class Int64Impl implements Int64 {
   static const int _SIGN_BIT = 19; // _BITS2 - 1
   static const int _SIGN_BIT_MASK = 1 << _SIGN_BIT;
 
-  static const Int64Impl MAX_VALUE = Int64Impl._bits(_MASK, _MASK, _MASK2 >> 1);
+  static const Int64 MAX_VALUE = Int64._bits(_MASK, _MASK, _MASK2 >> 1);
 
-  static const Int64Impl MIN_VALUE = Int64Impl._bits(0, 0, _SIGN_BIT_MASK);
+  static const Int64 MIN_VALUE = Int64._bits(0, 0, _SIGN_BIT_MASK);
 
-  static const Int64Impl ZERO = Int64Impl._bits(0, 0, 0);
+  static const Int64 ZERO = Int64._bits(0, 0, 0);
 
-  static const Int64Impl ONE = Int64Impl._bits(1, 0, 0);
+  static const Int64 ONE = Int64._bits(1, 0, 0);
 
-  static const Int64Impl TWO = Int64Impl._bits(2, 0, 0);
+  static const Int64 TWO = Int64._bits(2, 0, 0);
 
-  /// Constructs an [Int64Impl] with a given bitwise representation.  No
+  /// Constructs an [Int64] with a given bitwise representation.  No
   /// validation is performed.
-  const Int64Impl._bits(this._l, this._m, this._h);
+  const Int64._bits(this._l, this._m, this._h);
 
-  static Int64Impl? parseRadix(String s, int radix, bool throwOnError) {
+  static Int64 parseInt(String source) => _parseRadix(source, 10, true)!;
+
+  static Int64? tryParseInt(String source) => _parseRadix(source, 10, false);
+
+  static Int64 parseRadix(String source, int radix) =>
+      _parseRadix(source, u.validateRadix(radix), true)!;
+
+  static Int64? tryParseRadix(String source, int radix) =>
+      _parseRadix(source, u.validateRadix(radix), false);
+
+  static Int64 parseHex(String source) => _parseRadix(source, 16, true)!;
+
+  static Int64? tryParseHex(String source) => _parseRadix(source, 16, false);
+
+  static Int64? _parseRadix(String s, int radix, bool throwOnError) {
     int i = 0;
     bool negative = false;
     if (s.startsWith('-')) {
@@ -88,10 +100,10 @@ class Int64Impl implements Int64 {
 
     if (negative) return _negate(d0, d1, d2);
 
-    return Int64Impl._masked(d0, d1, d2);
+    return Int64._masked(d0, d1, d2);
   }
 
-  factory Int64Impl([int value = 0]) {
+  factory Int64([int value = 0]) {
     int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
     if (value < 0) {
@@ -107,11 +119,11 @@ class Int64Impl implements Int64 {
     v0 = value;
 
     return negative
-        ? Int64Impl._negate(_MASK & v0, _MASK & v1, _MASK2 & v2)
-        : Int64Impl._masked(v0, v1, v2);
+        ? Int64._negate(_MASK & v0, _MASK & v1, _MASK2 & v2)
+        : Int64._masked(v0, v1, v2);
   }
 
-  factory Int64Impl.fromBytes(List<int> bytes) {
+  factory Int64.fromBytes(List<int> bytes) {
     // 20 bits into top, 22 into middle and bottom.
     var split1 = bytes[5] & 0xFF;
     var high =
@@ -123,10 +135,10 @@ class Int64Impl implements Int64 {
         (split2 >> 6);
     var low = (split2 << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[0] & 0xFF);
     // Top bits from above will be masked off here.
-    return Int64Impl._masked(low, middle, high);
+    return Int64._masked(low, middle, high);
   }
 
-  factory Int64Impl.fromBytesBigEndian(List<int> bytes) {
+  factory Int64.fromBytesBigEndian(List<int> bytes) {
     var split1 = bytes[2] & 0xFF;
     var high =
         ((bytes[0] & 0xFF) << 12) | ((bytes[1] & 0xFF) << 4) | (split1 >> 4);
@@ -137,52 +149,52 @@ class Int64Impl implements Int64 {
         (split2 >> 6);
     var low = (split2 << 16) | ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
     // Top bits from above will be masked off here.
-    return Int64Impl._masked(low, middle, high);
+    return Int64._masked(low, middle, high);
   }
 
-  factory Int64Impl.fromInts(int top, int bottom) {
+  factory Int64.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
     int d0 = _MASK & bottom;
     int d1 = ((0xfff & top) << 10) | (0x3ff & (bottom >> _BITS));
     int d2 = _MASK2 & (top >> 12);
-    return Int64Impl._masked(d0, d1, d2);
+    return Int64._masked(d0, d1, d2);
   }
 
-  // Returns the [Int64Impl] representation of the specified value. Throws
+  // Returns the [Int64] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
-  static Int64Impl _promote(value) {
-    if (value is Int64Impl) {
+  static Int64 _promote(value) {
+    if (value is Int64) {
       return value;
     } else if (value is int) {
-      return Int64Impl(value);
+      return Int64(value);
     } else if (value is Int32) {
-      return value.toInt64() as Int64Impl;
+      return value.toInt64() as Int64;
     }
     throw ArgumentError.value(value, 'other', 'not an int, Int32 or Int64');
   }
 
   @override
-  Int64Impl operator +(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator +(Object other) {
+    Int64 o = _promote(other);
     int sum0 = _l + o._l;
     int sum1 = _m + o._m + (sum0 >> _BITS);
     int sum2 = _h + o._h + (sum1 >> _BITS);
-    return Int64Impl._masked(sum0, sum1, sum2);
+    return Int64._masked(sum0, sum1, sum2);
   }
 
   @override
-  Int64Impl operator -(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator -(Object other) {
+    Int64 o = _promote(other);
     return _sub(_l, _m, _h, o._l, o._m, o._h);
   }
 
   @override
-  Int64Impl operator -() => _negate(_l, _m, _h);
+  Int64 operator -() => _negate(_l, _m, _h);
 
   @override
-  Int64Impl operator *(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator *(Object other) {
+    Int64 o = _promote(other);
 
     // Grab 13-bit chunks.
     int a0 = _l & 0x1fff;
@@ -259,50 +271,50 @@ class Int64Impl implements Int64 {
     c1 += c0 >> _BITS;
     c2 += c1 >> _BITS;
 
-    return Int64Impl._masked(c0, c1, c2);
+    return Int64._masked(c0, c1, c2);
   }
 
   @override
-  Int64Impl operator %(Object other) => _divide(this, other, _RETURN_MOD);
+  Int64 operator %(Object other) => _divide(this, other, _RETURN_MOD);
 
   @override
-  Int64Impl operator ~/(Object other) => _divide(this, other, _RETURN_DIV);
+  Int64 operator ~/(Object other) => _divide(this, other, _RETURN_DIV);
 
   @override
-  Int64Impl remainder(Object other) => _divide(this, other, _RETURN_REM);
+  Int64 remainder(Object other) => _divide(this, other, _RETURN_REM);
 
   @override
-  Int64Impl operator &(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator &(Object other) {
+    Int64 o = _promote(other);
     int a0 = _l & o._l;
     int a1 = _m & o._m;
     int a2 = _h & o._h;
-    return Int64Impl._masked(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   @override
-  Int64Impl operator |(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator |(Object other) {
+    Int64 o = _promote(other);
     int a0 = _l | o._l;
     int a1 = _m | o._m;
     int a2 = _h | o._h;
-    return Int64Impl._masked(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   @override
-  Int64Impl operator ^(Object other) {
-    Int64Impl o = _promote(other);
+  Int64 operator ^(Object other) {
+    Int64 o = _promote(other);
     int a0 = _l ^ o._l;
     int a1 = _m ^ o._m;
     int a2 = _h ^ o._h;
-    return Int64Impl._masked(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   @override
-  Int64Impl operator ~() => Int64Impl._masked(~_l, ~_m, ~_h);
+  Int64 operator ~() => Int64._masked(~_l, ~_m, ~_h);
 
   @override
-  Int64Impl operator <<(int n) {
+  Int64 operator <<(int n) {
     if (n < 0) {
       throw ArgumentError.value(n);
     }
@@ -325,16 +337,16 @@ class Int64Impl implements Int64 {
       res2 = _l << (n - _BITS01);
     }
 
-    return Int64Impl._masked(res0, res1, res2);
+    return Int64._masked(res0, res1, res2);
   }
 
   @override
-  Int64Impl operator >>(int n) {
+  Int64 operator >>(int n) {
     if (n < 0) {
       throw ArgumentError.value(n);
     }
     if (n >= 64) {
-      return isNegative ? const Int64Impl._bits(_MASK, _MASK, _MASK2) : ZERO;
+      return isNegative ? const Int64._bits(_MASK, _MASK, _MASK2) : ZERO;
     }
 
     int res0, res1, res2;
@@ -371,11 +383,11 @@ class Int64Impl implements Int64 {
       }
     }
 
-    return Int64Impl._masked(res0, res1, res2);
+    return Int64._masked(res0, res1, res2);
   }
 
   @override
-  Int64Impl shiftRightUnsigned(int n) {
+  Int64 shiftRightUnsigned(int n) {
     if (n < 0) {
       throw ArgumentError.value(n);
     }
@@ -399,22 +411,22 @@ class Int64Impl implements Int64 {
       res0 = a2 >> (n - _BITS01);
     }
 
-    return Int64Impl._masked(res0, res1, res2);
+    return Int64._masked(res0, res1, res2);
   }
 
   @override
   bool operator ==(Object other) {
-    Int64Impl? o;
-    if (other is Int64Impl) {
+    Int64? o;
+    if (other is Int64) {
       o = other;
     } else if (other is int) {
       if (_h == 0 && _m == 0) return _l == other;
       // Since we know one of [_h] or [_m] is non-zero, if [other] fits in the
       // low word then it can't be numerically equal.
       if ((_MASK & other) == other) return false;
-      o = Int64Impl(other);
+      o = Int64(other);
     } else if (other is Int32) {
-      o = other.toInt64() as Int64Impl;
+      o = other.toInt64() as Int64;
     }
     if (o != null) {
       return _l == o._l && _m == o._m && _h == o._h;
@@ -426,7 +438,7 @@ class Int64Impl implements Int64 {
   int compareTo(Object other) => _compareTo(other);
 
   int _compareTo(Object other) {
-    Int64Impl o = _promote(other);
+    Int64 o = _promote(other);
     int signa = _h >> (_BITS2 - 1);
     int signb = o._h >> (_BITS2 - 1);
     if (signa != signb) {
@@ -497,19 +509,19 @@ class Int64Impl implements Int64 {
   @override
   int get hashCode {
     // TODO(sra): Should we ensure that hashCode values match corresponding int?
-    // i.e. should `new Int64Impl(x).hashCode == x.hashCode`?
+    // i.e. should `new Int64(x).hashCode == x.hashCode`?
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
     int top = (_h << 12) | ((_m >> 10) & 0xfff);
     return bottom ^ top;
   }
 
   @override
-  Int64Impl abs() => isNegative ? -this : this;
+  Int64 abs() => isNegative ? -this : this;
 
   @override
-  Int64Impl clamp(Object lowerLimit, Object upperLimit) {
-    Int64Impl lower = _promote(lowerLimit);
-    Int64Impl upper = _promote(upperLimit);
+  Int64 clamp(Object lowerLimit, Object upperLimit) {
+    Int64 lower = _promote(lowerLimit);
+    Int64 upper = _promote(upperLimit);
     if (this < lower) return lower;
     if (this > upper) return upper;
     return this;
@@ -551,35 +563,35 @@ class Int64Impl implements Int64 {
   }
 
   @override
-  Int64Impl toSigned(int width) {
+  Int64 toSigned(int width) {
     if (width < 1 || width > 64) throw RangeError.range(width, 1, 64);
     if (width > _BITS01) {
-      return Int64Impl._masked(_l, _m, _h.toSigned(width - _BITS01));
+      return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
     } else if (width > _BITS) {
       int m = _m.toSigned(width - _BITS);
       return m.isNegative
-          ? Int64Impl._masked(_l, m, _MASK2)
-          : Int64Impl._masked(_l, m, 0); // Masking for type inferrer.
+          ? Int64._masked(_l, m, _MASK2)
+          : Int64._masked(_l, m, 0); // Masking for type inferrer.
     } else {
       int l = _l.toSigned(width);
       return l.isNegative
-          ? Int64Impl._masked(l, _MASK, _MASK2)
-          : Int64Impl._masked(l, 0, 0); // Masking for type inferrer.
+          ? Int64._masked(l, _MASK, _MASK2)
+          : Int64._masked(l, 0, 0); // Masking for type inferrer.
     }
   }
 
   @override
-  Int64Impl toUnsigned(int width) {
+  Int64 toUnsigned(int width) {
     if (width < 0 || width > 64) throw RangeError.range(width, 0, 64);
     if (width > _BITS01) {
       int h = _h.toUnsigned(width - _BITS01);
-      return Int64Impl._masked(_l, _m, h);
+      return Int64._masked(_l, _m, h);
     } else if (width > _BITS) {
       int m = _m.toUnsigned(width - _BITS);
-      return Int64Impl._masked(_l, m, 0);
+      return Int64._masked(_l, m, 0);
     } else {
       int l = _l.toUnsigned(width);
-      return Int64Impl._masked(l, 0, 0);
+      return Int64._masked(l, 0, 0);
     }
   }
 
@@ -621,7 +633,7 @@ class Int64Impl implements Int64 {
   Int32 toInt32() => Int32(((_m & 0x3ff) << _BITS) | _l);
 
   @override
-  Int64Impl toInt64() => this;
+  Int64 toInt64() => this;
 
   @override
   String toString() => _toRadixString(10);
@@ -629,7 +641,7 @@ class Int64Impl implements Int64 {
   @override
   String toHexString() {
     if (isZero) return '0';
-    Int64Impl x = this;
+    Int64 x = this;
     String hexStr = '';
     while (!x.isZero) {
       int digit = x._l & 0xf;
@@ -639,11 +651,9 @@ class Int64Impl implements Int64 {
     return hexStr;
   }
 
-  @override
   @pragma('dart2js:noInline')
   String toStringUnsigned() => _toRadixStringUnsigned(10, _l, _m, _h, '');
 
-  @override
   @pragma('dart2js:noInline')
   String toRadixStringUnsigned(int radix) =>
       _toRadixStringUnsigned(u.validateRadix(radix), _l, _m, _h, '');
@@ -815,17 +825,17 @@ class Int64Impl implements Int64 {
 
   String toDebugString() => 'Int64[_l=$_l, _m=$_m, _h=$_h]';
 
-  static Int64Impl _masked(int low, int medium, int high) =>
-      Int64Impl._bits(_MASK & low, _MASK & medium, _MASK2 & high);
+  static Int64 _masked(int low, int medium, int high) =>
+      Int64._bits(_MASK & low, _MASK & medium, _MASK2 & high);
 
-  static Int64Impl _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
+  static Int64 _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
     int diff0 = a0 - b0;
     int diff1 = a1 - b1 - ((diff0 >> _BITS) & 1);
     int diff2 = a2 - b2 - ((diff1 >> _BITS) & 1);
     return _masked(diff0, diff1, diff2);
   }
 
-  static Int64Impl _negate(int b0, int b1, int b2) => _sub(0, 0, 0, b0, b1, b2);
+  static Int64 _negate(int b0, int b1, int b2) => _sub(0, 0, 0, b0, b1, b2);
 
   String _hexDigit(int digit) => '0123456789ABCDEF'[digit];
 
@@ -844,8 +854,8 @@ class Int64Impl implements Int64 {
 
   // Implementation of '~/', '%' and 'remainder'.
 
-  static Int64Impl _divide(Int64Impl a, other, int what) {
-    Int64Impl b = _promote(other);
+  static Int64 _divide(Int64 a, other, int what) {
+    Int64 b = _promote(other);
     if (b.isZero) {
       throw UnsupportedError('Division by zero');
     }
@@ -870,7 +880,7 @@ class Int64Impl implements Int64 {
   static const _RETURN_REM = 2;
   static const _RETURN_MOD = 3;
 
-  static Int64Impl _divideHelper(
+  static Int64 _divideHelper(
       // up to 64 bits unsigned in a2/a1/a0 and b2/b1/b0
       int a0,
       int a1,
@@ -977,18 +987,18 @@ class Int64Impl implements Int64 {
     }
 
     // 0 <= R < B
-    assert(Int64Impl.ZERO <= Int64Impl._bits(r0, r1, r2));
+    assert(Int64.ZERO <= Int64._bits(r0, r1, r2));
     assert(r2 < b2 || // Handles case where B = -(MIN_VALUE)
-        Int64Impl._bits(r0, r1, r2) < Int64Impl._bits(b0, b1, b2));
+        Int64._bits(r0, r1, r2) < Int64._bits(b0, b1, b2));
 
     assert(what == _RETURN_DIV || what == _RETURN_MOD || what == _RETURN_REM);
     if (what == _RETURN_DIV) {
       if (aNeg != bNeg) return _negate(q0, q1, q2);
-      return Int64Impl._masked(q0, q1, q2); // Masking for type inferrer.
+      return Int64._masked(q0, q1, q2); // Masking for type inferrer.
     }
 
     if (!aNeg) {
-      return Int64Impl._masked(r0, r1, r2); // Masking for type inferrer.
+      return Int64._masked(r0, r1, r2); // Masking for type inferrer.
     }
 
     if (what == _RETURN_MOD) {
