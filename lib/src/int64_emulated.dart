@@ -641,12 +641,12 @@ class Int64Impl implements Int64 {
 
   @override
   @pragma('dart2js:noInline')
-  String toStringUnsigned() => u.toRadixStringUnsigned(10, _l, _m, _h, '');
+  String toStringUnsigned() => _toRadixStringUnsigned(10, _l, _m, _h, '');
 
   @override
   @pragma('dart2js:noInline')
   String toRadixStringUnsigned(int radix) =>
-      u.toRadixStringUnsigned(u.validateRadix(radix), _l, _m, _h, '');
+      _toRadixStringUnsigned(u.validateRadix(radix), _l, _m, _h, '');
 
   @override
   String toRadixString(int radix) => _toRadixString(u.validateRadix(radix));
@@ -673,8 +673,145 @@ class Int64Impl implements Int64 {
       // unsigned 63 bit integer for other values.
     }
 
-    return u.toRadixStringUnsigned(radix, d0, d1, d2, sign);
+    return _toRadixStringUnsigned(radix, d0, d1, d2, sign);
   }
+
+  static String _toRadixStringUnsigned(
+      int radix, int d0, int d1, int d2, String sign) {
+    if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
+
+    // Rearrange components into five components where all but the most
+    // significant are 10 bits wide.
+    //
+    //     d4, d3, d4, d1, d0:  24 + 10 + 10 + 10 + 10 bits
+    //
+    // The choice of 10 bits allows a remainder of 20 bits to be scaled by 10
+    // bits and added during division while keeping all intermediate values
+    // within 30 bits (unsigned small integer range for 32 bit implementations
+    // of Dart VM and V8).
+    //
+    //     6  6         5         4         3         2         1
+    //     3210987654321098765432109876543210987654321098765432109876543210
+    //     [--------d2--------][---------d1---------][---------d0---------]
+    //  -->
+    //     [----------d4----------][---d3---][---d2---][---d1---][---d0---]
+
+    int d4 = (d2 << 4) | (d1 >> 18);
+    int d3 = (d1 >> 8) & 0x3ff;
+    d2 = ((d1 << 2) | (d0 >> 20)) & 0x3ff;
+    d1 = (d0 >> 10) & 0x3ff;
+    d0 = d0 & 0x3ff;
+
+    int fatRadix = _fatRadixTable[radix];
+
+    // Generate chunks of digits.  In radix 10, generate 6 digits per chunk.
+    //
+    // This loop generates at most 3 chunks, so we store the chunks in locals
+    // rather than a list.  We are trying to generate digits 20 bits at a time
+    // until we have only 30 bits left.  20 + 20 + 30 > 64 would imply that we
+    // need only two chunks, but radix values 17-19 and 33-36 generate only 15
+    // or 16 bits per iteration, so sometimes the third chunk is needed.
+
+    String chunk1 = '', chunk2 = '', chunk3 = '';
+
+    while (!(d4 == 0 && d3 == 0)) {
+      int q = d4 ~/ fatRadix;
+      int r = d4 - q * fatRadix;
+      d4 = q;
+      d3 += r << 10;
+
+      q = d3 ~/ fatRadix;
+      r = d3 - q * fatRadix;
+      d3 = q;
+      d2 += r << 10;
+
+      q = d2 ~/ fatRadix;
+      r = d2 - q * fatRadix;
+      d2 = q;
+      d1 += r << 10;
+
+      q = d1 ~/ fatRadix;
+      r = d1 - q * fatRadix;
+      d1 = q;
+      d0 += r << 10;
+
+      q = d0 ~/ fatRadix;
+      r = d0 - q * fatRadix;
+      d0 = q;
+
+      assert(chunk3 == '');
+      chunk3 = chunk2;
+      chunk2 = chunk1;
+      // Adding [fatRadix] Forces an extra digit which we discard to get a fixed
+      // width.  E.g.  (1000000 + 123) -> "1000123" -> "000123".  An alternative
+      // would be to pad to the left with zeroes.
+      chunk1 = (fatRadix + r).toRadixString(radix).substring(1);
+    }
+    int residue = (d2 << 20) + (d1 << 10) + d0;
+    String leadingDigits = residue == 0 ? '' : residue.toRadixString(radix);
+    return '$sign$leadingDigits$chunk1$chunk2$chunk3';
+  }
+
+  // Table of 'fat' radix values.  Each entry for index `i` is the largest power
+  // of `i` whose remainder fits in 20 bits.
+  static const _fatRadixTable = <int>[
+    0,
+    0,
+    2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2 *
+        2,
+    3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3,
+    4 * 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4,
+    5 * 5 * 5 * 5 * 5 * 5 * 5 * 5,
+    6 * 6 * 6 * 6 * 6 * 6 * 6,
+    7 * 7 * 7 * 7 * 7 * 7 * 7,
+    8 * 8 * 8 * 8 * 8 * 8,
+    9 * 9 * 9 * 9 * 9 * 9,
+    10 * 10 * 10 * 10 * 10 * 10,
+    11 * 11 * 11 * 11 * 11,
+    12 * 12 * 12 * 12 * 12,
+    13 * 13 * 13 * 13 * 13,
+    14 * 14 * 14 * 14 * 14,
+    15 * 15 * 15 * 15 * 15,
+    16 * 16 * 16 * 16 * 16,
+    17 * 17 * 17 * 17,
+    18 * 18 * 18 * 18,
+    19 * 19 * 19 * 19,
+    20 * 20 * 20 * 20,
+    21 * 21 * 21 * 21,
+    22 * 22 * 22 * 22,
+    23 * 23 * 23 * 23,
+    24 * 24 * 24 * 24,
+    25 * 25 * 25 * 25,
+    26 * 26 * 26 * 26,
+    27 * 27 * 27 * 27,
+    28 * 28 * 28 * 28,
+    29 * 29 * 29 * 29,
+    30 * 30 * 30 * 30,
+    31 * 31 * 31 * 31,
+    32 * 32 * 32 * 32,
+    33 * 33 * 33,
+    34 * 34 * 34,
+    35 * 35 * 35,
+    36 * 36 * 36
+  ];
 
   String toDebugString() => 'Int64[_l=$_l, _m=$_m, _h=$_h]';
 

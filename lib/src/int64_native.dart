@@ -249,8 +249,24 @@ class Int64Impl implements Int64 {
   @override
   String toStringUnsigned() => _toRadixStringUnsigned(_i, 10);
 
-  static String _toRadixStringUnsigned(int value, int radix) =>
-      // low 22 bits, mid 22 bits, high 20 bits
-      u.toRadixStringUnsigned(
-          radix, value & 4194303, (value >> 22) & 4194303, value >>> 44, '');
+  static String _toRadixStringUnsigned(int value, int radix) {
+    if (radix < 2 || radix > 36) {
+      throw ArgumentError('toStringRadixUnsigned radix must be >= 2 and <= 36'
+          ' (found $radix)');
+    }
+    if (value == 0) {
+      return '0';
+    }
+    // Split value into two 32-bit unsigned digits (v1, v0).
+    int v1 = value >>> 32;
+    int v0 = value.toUnsigned(32);
+    // Long division by a single digit: (q1, q0) = (v1, v0) ~/ radix, remainder r0.
+    int q1 = v1 ~/ radix;
+    int r1 = v1.remainder(radix);
+    v0 += r1 << 32;
+    int q0 = v0 ~/ radix;
+    int r0 = v0.remainder(radix); // lowest digit.
+    int otherDigits = (q1 << 32) + q0;
+    return '${otherDigits.toRadixString(radix)}${r0.toRadixString(radix)}';
+  }
 }
