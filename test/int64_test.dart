@@ -6,6 +6,7 @@
 // that the operations have an expected type.
 //
 // ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_const_constructors
 
 library int64test;
 

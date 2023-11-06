@@ -8,7 +8,7 @@ import 'int64.dart';
 import 'intx.dart';
 import 'utilities.dart' as u;
 
-/// An immutable 32-bit signed integer, in the range [-2^31, 2^31 - 1].
+/// An immutable 32-bit signed integer, in the range `[-2^31, 2^31 - 1]`.
 /// Arithmetic operations may overflow in order to maintain this range.
 class Int32 implements IntX {
   /// The maximum positive value attainable by an [Int32], namely
@@ -321,8 +321,6 @@ class Int32 implements IntX {
     return Int32(value);
   }
 
-  /// Returns [:true:] if this [Int32] has the same numeric value as the
-  /// given object.  The argument may be an [int] or an [IntX].
   @override
   bool operator ==(Object other) {
     if (other is Int32) {
