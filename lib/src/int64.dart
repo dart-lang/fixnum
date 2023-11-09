@@ -634,8 +634,6 @@ class Int64 implements IntX {
     return this;
   }
 
-  /// Returns the number of leading zeros in this [Int64] as an [int]
-  /// between 0 and 64.
   @override
   int numberOfLeadingZeros() {
     int b2 = u.numberOfLeadingZeros(_h);
@@ -651,8 +649,6 @@ class Int64 implements IntX {
     }
   }
 
-  /// Returns the number of trailing zeros in this [Int64] as an [int]
-  /// between 0 and 64.
   @override
   int numberOfTrailingZeros() {
     int zeros = u.numberOfTrailingZeros(_l);
