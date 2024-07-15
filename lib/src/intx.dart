@@ -125,12 +125,18 @@ abstract class IntX implements Comparable<Object> {
   /// value, add one, i.e. use `x.bitLength + 1`.
   int get bitLength;
 
-  /// Returns the number of high-order zeros in this integer's bit
-  /// representation.
+  /// Returns the number of leading (most significant) zeros in this integer's
+  /// two's complement representation.
+  ///
+  /// For zero, the result is the same as the integer type's bit max. bit
+  /// length.
   int numberOfLeadingZeros();
 
-  /// Returns the number of low-order zeros in this integer's bit
-  /// representation.
+  /// Returns the number of trailing (least significant) zeros in this
+  /// integer's two's complement representation.
+  ///
+  /// For zero, the result is the same as the integer type's bit max. bit
+  /// length.
   int numberOfTrailingZeros();
 
   /// Returns the least significant [width] bits of this integer, extending the
