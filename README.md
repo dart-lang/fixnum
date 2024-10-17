@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This repo has moved to https://github.com/dart-lang/core/tree/main/pkgs/fixnum
+
 [![Dart CI](https://github.com/dart-lang/fixnum/actions/workflows/test-package.yml/badge.svg)](https://github.com/dart-lang/fixnum/actions/workflows/test-package.yml)
 [![Pub](https://img.shields.io/pub/v/fixnum.svg)](https://pub.dev/packages/fixnum)
 [![package publisher](https://img.shields.io/pub/publisher/fixnum.svg)](https://pub.dev/packages/fixnum/publisher)
